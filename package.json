@@ -1,0 +1,10 @@
+{
+  "name": "rotatrucks",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev:web": "npm run dev --prefix web",
+    "dev:mobile": "npm run start --prefix mobile",
+    "build:web": "npm run build --prefix web"
+  }
+}

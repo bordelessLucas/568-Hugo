@@ -1,0 +1,15 @@
+{
+  "name": "@rotatrucks/back",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./here": "./src/services/here-routing.ts",
+    "./tokens": "./src/design/tokens.ts"
+  },
+  "dependencies": {
+    "@here/flexpolyline": "^0.1.0",
+    "firebase": "^12.19.0"
+  }
+}

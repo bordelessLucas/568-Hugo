@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "RotaTrucks",
+    "slug": "rotatrucks",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/logo.png",
+    "scheme": "rotatrucks",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.rotatrucks.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0073B8",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.rotatrucks.app"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-dev-client",
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0073B8",
+          "image": "./assets/images/logo.png",
+          "imageWidth": 180
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

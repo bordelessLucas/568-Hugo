@@ -1,0 +1,14 @@
+{
+  "name": "rotatrucks-functions",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "20"
+  },
+  "main": "src/index.ts",
+  "dependencies": {
+    "@rotatrucks/back": "file:../back",
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^6.6.0"
+  }
+}

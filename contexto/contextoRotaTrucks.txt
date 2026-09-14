@@ -1,0 +1,90 @@
+CONTA
+login
+senha
+
+DEMANDA
+
+
+SPRINT
+
+ **Dia 1 — Estrutura Inicial e Acesso**
+
+* Configuração inicial do projeto RotaTrucks.
+* Estruturação da navegação principal.
+* Tela de login.
+* Cadastro de novo usuário.
+* Campos básicos: nome, e-mail e senha.
+* Validação simples de acesso.
+* Preparação da estrutura de dados para usuários e veículos.
+
+ **Dia 2 — Cadastro e Perfil do Caminhão**
+
+* Tela de cadastro do veículo.
+* Seleção do tipo de caminhão:
+
+  * Toco
+  * Truck
+  * Carreta 2 Eixos
+  * Bitruck
+  * Bitrem
+* Cadastro das dimensões:
+
+  * Altura
+  * Largura
+  * Comprimento
+  * Peso total
+* Associação do veículo ao usuário.
+* Salvamento das informações para utilização no mapa.
+
+**Dia 3 — Mapa e Localização**
+
+* Implementação do mapa principal.
+* Identificação da localização atual do usuário.
+* Exibição das marcações cadastradas pela comunidade.
+* Visualização das ocorrências diretamente no mapa.
+* Diferenciação entre locais onde o caminhão **passa** e **não passa**.
+* Estrutura inicial para consulta das informações da região.
+
+ **Dia 4 — Filtros por Tipo de Caminhão**
+
+* Filtro das informações conforme o veículo cadastrado.
+* Consulta das marcações relacionadas ao tipo de caminhão.
+* Exibição de restrições de altura e peso.
+* Indicação visual de vias adequadas ou inadequadas.
+* Ajustes para que a consulta seja simples e rápida pelo celular.
+
+ **Dia 5 — Registro de Ocorrências**
+
+* Tela **Reportar Ocorrência**.
+* Seleção do tipo de veículo.
+* Registro da localização atual.
+* Classificação da situação:
+
+  * Passa
+  * Não passa
+* Campo para observações.
+* Salvamento da ocorrência no banco de dados.
+* Associação da informação ao usuário e data do registro.
+
+ **Dia 6 — Experiência do Usuário e Ajustes**
+
+* Tela de perfil/configurações.
+* Visualização das informações básicas do usuário e veículo.
+* Ajustes de navegação entre as principais áreas.
+* Adequação da interface para celulares.
+* Organização dos elementos seguindo a identidade visual apresentada do RotaTrucks.
+* Tratamento de mensagens de erro e campos obrigatórios.
+
+ **Dia 7 — Validação e Publicação do Protótipo**
+
+* Teste geral dos principais fluxos.
+* Correção de inconsistências encontradas.
+* Validação do cadastro de usuários e veículos.
+* Validação das marcações no mapa.
+* Validação do registro de ocorrências.
+* Ajustes finais de responsividade.
+* Configuração da versão Web App.
+* Preparação da estrutura para futura evolução para Android e iOS.
+
+
+

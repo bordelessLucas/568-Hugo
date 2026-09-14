@@ -1,0 +1,72 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function noPassword() {
+      return !request.resource.data.keys().hasAny(['password', 'senha']);
+    }
+
+    function validTruck() {
+      return request.resource.data.keys().hasOnly([
+          'userId', 'type', 'heightMeters', 'widthMeters', 'lengthMeters', 'totalWeightKg'
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.type in ['toco', 'truck', 'carreta_2_eixos', 'bitruck', 'bitrem']
+        && request.resource.data.heightMeters is number
+        && request.resource.data.heightMeters > 0
+        && request.resource.data.heightMeters <= 8
+        && request.resource.data.widthMeters is number
+        && request.resource.data.widthMeters > 0
+        && request.resource.data.widthMeters <= 5
+        && request.resource.data.lengthMeters is number
+        && request.resource.data.lengthMeters > 0
+        && request.resource.data.lengthMeters <= 30
+        && request.resource.data.totalWeightKg is number
+        && request.resource.data.totalWeightKg > 0
+        && request.resource.data.totalWeightKg <= 200000;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && noPassword()
+        && request.resource.data.keys().hasOnly(['name', 'email', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.email is string
+        && request.resource.data.createdAt is string
+        && request.resource.data.email == request.auth.token.email;
+      allow update: if isOwner(userId)
+        && noPassword()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['name', 'email', 'gender', 'onboardingDismissed', 'activeTruckId'])
+        && (!request.resource.data.keys().hasAny(['gender'])
+            || request.resource.data.gender in ['homem', 'mulher', 'nao_informado'])
+        && (!request.resource.data.keys().hasAny(['onboardingDismissed'])
+            || request.resource.data.onboardingDismissed is bool)
+        && (!request.resource.data.keys().hasAny(['activeTruckId'])
+            || (request.resource.data.activeTruckId is string
+                && request.resource.data.activeTruckId.size() > 0));
+      allow delete: if false;
+    }
+
+    match /users/{userId}/trucks/{truckId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && validTruck();
+      allow update, delete: if isOwner(userId);
+    }
+
+    match /reports/{reportId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}
