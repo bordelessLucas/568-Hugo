@@ -1,0 +1,265 @@
+import { useState } from 'react'
+import { useRouter } from 'expo-router'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  REPORT_STATUSES,
+  TRUCK_TYPE_OPTIONS,
+  TRUCK_TYPES,
+  createReport,
+  type ReportStatus,
+  type TruckType,
+} from '@rotatrucks/back'
+import { tokens } from '@rotatrucks/back/tokens'
+import { Button } from '@/components/Button'
+import { Container } from '@/components/Container'
+import { Icon } from '@/components/Icon'
+import { Input } from '@/components/Input'
+import { ScreenHeader } from '@/components/ScreenHeader'
+import { useAuth } from '@/contexts/AuthContext'
+import { useSettings } from '@/contexts/SettingsContext'
+import { useDeviceLocation } from '@/hooks/useDeviceLocation'
+import { toUserMessage } from '@/lib/auth-errors'
+
+const STATUS_LABEL: Record<ReportStatus, string> = {
+  passa: 'Passa',
+  nao_passa: 'Não passa',
+}
+
+export function ReportScreen() {
+  const auth = useAuth()
+  const settings = useSettings()
+  const router = useRouter()
+  const location = useDeviceLocation(settings.shareLocation)
+  const [truckType, setTruckType] = useState<TruckType | null>(auth.truck?.type ?? null)
+  const [status, setStatus] = useState<ReportStatus | null>(null)
+  const [notes, setNotes] = useState('')
+  const [extreme, setExtreme] = useState(false)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [done, setDone] = useState(false)
+
+  const save = async () => {
+    setError('')
+    if (!auth.session) {
+      setError('Entre na conta para marcar a ocorrência.')
+      return
+    }
+    if (!truckType || !status) {
+      setError('Escolha o tipo do caminhão e se passa ou não passa.')
+      return
+    }
+    if (!location.point) {
+      setError('Permita a localização para gravar o ponto.')
+      return
+    }
+    if (extreme && notes.trim().length < 8) {
+      setError('Na urgência extrema, escreva o que aconteceu (ex.: acidente grave na pista).')
+      return
+    }
+    setSaving(true)
+    try {
+      await createReport({
+        authorId: auth.session.uid,
+        truckType,
+        status,
+        notes: notes.trim(),
+        latitude: location.point.latitude,
+        longitude: location.point.longitude,
+        urgency: extreme ? 'extreme' : 'normal',
+      })
+      setDone(true)
+    } catch (caught) {
+      setError(toUserMessage(caught))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (done) {
+    return (
+      <Container>
+        <View style={styles.stack}>
+          <ScreenHeader
+            title="Ocorrência salva"
+            subtitle={
+              extreme
+                ? 'Aviso extremo pode aparecer para quem está perto, mesmo sem destino.'
+                : 'Opcional. Aparece na área de Comunidade e pode avisar na rota.'
+            }
+            icon="checkmark-circle-outline"
+            back
+          />
+          <Button label="Ver comunidade" onPress={() => router.replace('/comunidade')} />
+          <Button label="Voltar ao mapa" variant="outline" onPress={() => router.replace('/home')} />
+        </View>
+      </Container>
+    )
+  }
+
+  return (
+    <Container>
+      <View style={styles.stack}>
+        <ScreenHeader
+          title="Marcar ocorrência"
+          subtitle="Opcional, como no Waze. Só registre se quiser ajudar a rede."
+          icon="warning-outline"
+          back
+        />
+
+        <Text style={styles.caption}>Tipo de caminhão</Text>
+        {TRUCK_TYPES.map((value) => (
+          <Pressable
+            key={value}
+            onPress={() => setTruckType(value)}
+            style={[styles.choice, truckType === value ? styles.choiceOn : null]}
+          >
+            <Icon
+              name="bus-outline"
+              size={18}
+              color={truckType === value ? tokens.color.brand : tokens.color.muted}
+            />
+            <Text style={styles.label}>{TRUCK_TYPE_OPTIONS[value].label}</Text>
+          </Pressable>
+        ))}
+
+        <Text style={styles.caption}>Situação</Text>
+        <View style={styles.row}>
+          {REPORT_STATUSES.map((value) => (
+            <Pressable
+              key={value}
+              onPress={() => setStatus(value)}
+              style={[styles.choice, styles.half, status === value ? styles.choiceOn : null]}
+            >
+              <Icon
+                name={value === 'passa' ? 'checkmark-circle-outline' : 'close-circle-outline'}
+                size={18}
+                color={
+                  status === value
+                    ? value === 'passa'
+                      ? tokens.color.pass
+                      : tokens.color.danger
+                    : tokens.color.muted
+                }
+              />
+              <Text style={styles.label}>{STATUS_LABEL[value]}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Input
+          label="Observações"
+          value={notes}
+          onChangeText={setNotes}
+          placeholder={extreme ? 'Obrigatório na urgência extrema' : 'Opcional'}
+          icon="document"
+        />
+
+        <Pressable
+          onPress={() => setExtreme((value) => !value)}
+          style={[styles.choice, extreme ? styles.choiceDanger : null]}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: extreme }}
+          accessibilityLabel="Marcar como urgência extrema"
+        >
+          <Icon
+            name={extreme ? 'alert-circle' : 'alert-circle-outline'}
+            size={18}
+            color={extreme ? tokens.color.danger : tokens.color.muted}
+          />
+          <View style={styles.extremeCopy}>
+            <Text style={styles.label}>Urgência extrema</Text>
+            <Text style={styles.muted}>
+              Só para acidente grave ou risco imediato. Aparece para quem está perto, mesmo sem destino.
+            </Text>
+          </View>
+        </Pressable>
+
+        <View style={styles.gps}>
+          <Icon
+            name={location.status === 'ready' ? 'locate' : 'locate-outline'}
+            size={18}
+            color={location.status === 'ready' ? tokens.color.pass : tokens.color.muted}
+          />
+          <Text style={styles.muted}>
+            {location.status === 'ready'
+              ? 'Localização pronta para gravar o ponto.'
+              : location.status === 'denied'
+                ? 'Localização bloqueada.'
+                : 'Buscando localização…'}
+          </Text>
+        </View>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Button
+          label="Salvar ocorrência"
+          loading={saving}
+          onPress={() => {
+            void save()
+          }}
+        />
+        <Button label="Cancelar" variant="outline" onPress={() => router.back()} />
+      </View>
+    </Container>
+  )
+}
+
+const styles = StyleSheet.create({
+  stack: {
+    gap: tokens.space[3],
+    paddingBottom: tokens.space[8],
+  },
+  caption: {
+    fontFamily: tokens.font.label,
+    fontSize: tokens.size.caption,
+    color: tokens.color.brand,
+  },
+  choice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.space[3],
+    borderWidth: 1,
+    borderColor: tokens.color.line,
+    borderRadius: tokens.radius.field,
+    padding: tokens.space[3],
+    backgroundColor: tokens.color.surface,
+  },
+  choiceOn: {
+    borderColor: tokens.color.brand,
+    backgroundColor: tokens.color.fog,
+  },
+  choiceDanger: {
+    borderColor: tokens.color.danger,
+    backgroundColor: '#FDECEA',
+  },
+  extremeCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  half: {
+    flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: tokens.space[2],
+  },
+  label: {
+    fontFamily: tokens.font.label,
+    fontSize: tokens.size.label,
+    color: tokens.color.ink,
+  },
+  gps: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.space[2],
+  },
+  muted: {
+    flex: 1,
+    fontFamily: tokens.font.body,
+    fontSize: tokens.size.caption,
+    color: tokens.color.muted,
+  },
+  error: {
+    color: tokens.color.danger,
+    fontFamily: tokens.font.body,
+    fontSize: tokens.size.caption,
+  },
+})

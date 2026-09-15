@@ -7,6 +7,8 @@ import { LoginScreen } from './screens/LoginScreen.tsx'
 import { ProfileScreen } from './screens/ProfileScreen.tsx'
 import { RegisterScreen } from './screens/RegisterScreen.tsx'
 import { SettingsScreen } from './screens/SettingsScreen.tsx'
+import { CommunityScreen } from './screens/CommunityScreen.tsx'
+import { ReportScreen } from './screens/ReportScreen.tsx'
 
 function SetupOverlay() {
   const { status, onboardingOpen } = useAuth()
@@ -82,6 +84,22 @@ export default function App() {
           element={
             <RequireAuth>
               <SettingsScreen />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/comunidade"
+          element={
+            <RequireAuth>
+              <CommunityScreen />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/ocorrencia"
+          element={
+            <RequireAuth>
+              <ReportScreen />
             </RequireAuth>
           }
         />

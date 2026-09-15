@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   createTruck,
+  updateTruck,
   getUserProfile,
   saveUserProfile,
   listTrucksByUser,
@@ -38,6 +39,7 @@ interface AuthContextValue {
   completeOnboarding: (input: { gender: Gender; truck: NewTruck }) => Promise<void>
   dismissOnboarding: (gender: Gender | null) => Promise<void>
   addTruck: (truck: NewTruck) => Promise<void>
+  updateTruck: (truck: Truck) => Promise<void>
   selectTruck: (truckId: string) => Promise<void>
 }
 
@@ -201,6 +203,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile((current) => (current ? { ...current, activeTruckId: saved.id } : current))
         setTrucks((current) => [...current, saved])
         setTruck(saved)
+      },
+      updateTruck: async (next) => {
+        if (!session) throw new Error('Entre na conta para editar o caminhão.')
+        const saved = await updateTruck({ ...next, userId: session.uid })
+        setTrucks((current) => current.map((item) => (item.id === saved.id ? saved : item)))
+        setTruck((current) => (current?.id === saved.id ? saved : current))
       },
       selectTruck: async (truckId) => {
         if (!session) throw new Error('Entre na conta para escolher o caminhão.')

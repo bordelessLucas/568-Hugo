@@ -7,9 +7,12 @@ import {
   Nunito_700Bold,
   Nunito_800ExtraBold,
 } from '@expo-google-fonts/nunito'
-import { readFirebaseConfig } from '@/lib/backend'
-
-void readFirebaseConfig
+import { ActivityIndicator, View } from 'react-native'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { tokens } from '@rotatrucks/back/tokens'
+import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { SettingsProvider } from '@/contexts/SettingsContext'
+import { OnboardingModal } from '@/components/OnboardingModal'
 
 export default function RootLayout() {
   const [ready] = useFonts({
@@ -24,9 +27,32 @@ export default function RootLayout() {
   }
 
   return (
+    <SafeAreaProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <StatusBar style="dark" />
+          <RootNavigator />
+        </SettingsProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
+  )
+}
+
+function RootNavigator() {
+  const auth = useAuth()
+
+  if (auth.status === 'loading') {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: tokens.color.fog }}>
+        <ActivityIndicator color={tokens.color.brand} />
+      </View>
+    )
+  }
+
+  return (
     <>
-      <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
+      {auth.status === 'authenticated' && auth.onboardingOpen ? <OnboardingModal /> : null}
     </>
   )
 }

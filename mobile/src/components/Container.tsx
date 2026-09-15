@@ -1,16 +1,22 @@
 import type { ReactNode } from 'react'
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context'
 import { tokens } from '@rotatrucks/back/tokens'
 
 interface ContainerProps {
   children: ReactNode
   scroll?: boolean
+  /** Defaults to top+bottom. Tab screens should pass ["top"] only. */
+  edges?: readonly Edge[]
 }
 
-export function Container({ children, scroll = true }: ContainerProps) {
+export function Container({
+  children,
+  scroll = true,
+  edges = ['top', 'bottom'],
+}: ContainerProps) {
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safe} edges={edges}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

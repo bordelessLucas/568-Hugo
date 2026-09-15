@@ -1,18 +1,32 @@
-# Escopo — RotaTrucks
+# Escopo - RotaTrucks
 
-Quem usa: caminhoneiro no celular, em movimento ou parado no acostamento. Consulta rápida, com sol ou à noite. Não é um painel de escritório.
+Quem usa: caminhoneiro no celular, em movimento ou parado. Consulta rapida. Nao e painel de escritorio.
 
-O que o produto resolve: saber se a via passa ou não passa para o tipo e o tamanho do caminhão.
+O que o produto resolve: saber se a via passa ou nao passa para o tipo e o tamanho do caminhao.
 
-Conta (esta etapa visual):
+## Ja no web e no mobile (sem chave HERE)
 
-- Nome
-- E-mail
-- Senha (mínimo de 6 caracteres, nunca gravada em texto puro)
-- Confirmação de senha só na interface
+- Conta: nome, e-mail, senha (minimo 6), reset de senha
+- Onboarding em etapas: genero, tipo de caminhao, medidas (pulavel, com aviso pendente)
+- Perfil com varios caminhoes na mesma conta (usar / editar o atual)
+- Configuracoes locais: plano (sem cobranca), tema, notificacoes, sons, privacidade
+- Mapa mock + busca Photon com distancia
+- Mobile: tela de reportar ocorrencia (passa / nao passa) gravando no Firestore
+- Comunidade: lista, detalhe/feed, pedir/editar/cancelar pedido pendente (ver docs-ia/comunidades.md)
+- Mobile: avisos na rota estilo Waze + Continua la? (ver docs-ia/avisos-rota.md)
 
-O cadastro do caminhão (Toco, Truck, Carreta 2 eixos, Bitruck, Bitrem, mais altura, largura, comprimento e peso) é a tela seguinte. Não entra no formulário de conta.
+## Decidir juntos (PDFs / sprint)
 
-Home desta etapa: saudação, veículo ainda como placeholder visual, esqueleto do mapa e um ponto de entrada para marcar ocorrência. Sem mapa real e sem gravação.
+- Listar marcacoes da comunidade no mapa, filtradas pelo caminhao
+- Seed piloto Barra Velha / SC (viaduto 4,5 m, SC-401) - seed ja existe no back
+- Levar a tela de ocorrencia tambem para o web
 
-Fora desta etapa: Firebase na tela, rota calculada, SOS, planos e lojas.
+## Fora ate chave / decisao de produto
+
+- Rota HERE real
+- SOS, modo seguro, pontos seguros
+- Cobranca Premium / AdMob
+- Ingestao DNIT / DER
+- Painel admin de aprovacao de comunidades (hoje: Console Firebase)
+
+Ver canvas rotatrucks-feature-roadmap no Cursor.

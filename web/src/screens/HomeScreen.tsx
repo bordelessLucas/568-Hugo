@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { dimensionWarnings, type GeoPoint, type RouteResult } from '@rotatrucks/back'
 import { AppFrame } from '../components/AppFrame.tsx'
 import { MockMap } from '../components/MockMap.tsx'
@@ -12,6 +13,7 @@ import { requestTruckRoute } from '../lib/routing.ts'
 export function HomeScreen() {
   const auth = useAuth()
   const settings = useSettings()
+  const navigate = useNavigate()
   const location = useDeviceLocation(settings.shareLocation)
   const [destination, setDestination] = useState<GeoPoint | null>(null)
   const [focus, setFocus] = useState<GeoPoint | null>(null)
@@ -48,6 +50,27 @@ export function HomeScreen() {
               setResult(null)
             }}
           />
+        </div>
+        <div className="pointer-events-none absolute right-4 bottom-4 z-20">
+          <button
+            type="button"
+            onClick={() => navigate('/ocorrencia')}
+            className="pointer-events-auto flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-[18px] border border-white/40 bg-accent text-accent-ink shadow-[0_6px_18px_rgba(31,20,4,0.28)]"
+            aria-label="Marcar ocorrência"
+            title="Opcional. Registra passa ou não passa."
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M12 3.5 21 19H3L12 3.5Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinejoin="round"
+              />
+              <path d="M12 10v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <circle cx="12" cy="16.5" r="1" fill="currentColor" />
+            </svg>
+            <span className="font-body text-[10px] font-bold">Ocorrência</span>
+          </button>
         </div>
       </section>
     </AppFrame>

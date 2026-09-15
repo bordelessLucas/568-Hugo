@@ -5,12 +5,13 @@ import { useAuth } from '../contexts/AuthContext.tsx'
 import { useSettings } from '../contexts/SettingsContext.tsx'
 
 interface AppFrameProps {
-  current: 'map' | 'profile' | 'settings'
+  current: 'map' | 'profile' | 'settings' | 'community' | 'report'
   children: ReactNode
 }
 
 const NAV = [
   { id: 'map', label: 'Mapa', path: '/home' },
+  { id: 'community', label: 'Comunidade', path: '/comunidade' },
   { id: 'settings', label: 'Configurações', path: '/configuracoes' },
 ] as const
 
@@ -56,7 +57,13 @@ export function AppFrame({ current, children }: AppFrameProps) {
                 current={current === item.id}
                 onClick={() => go(item.path)}
               >
-                {item.id === 'map' ? <MapIcon /> : <SettingsIcon />}
+                {item.id === 'map' ? (
+                  <MapIcon />
+                ) : item.id === 'community' ? (
+                  <CommunityIcon />
+                ) : (
+                  <SettingsIcon />
+                )}
               </IconButton>
             ))}
           </nav>
@@ -199,6 +206,17 @@ function MapIcon() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
       <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" />
       <circle cx="12" cy="10" r="2.2" />
+    </svg>
+  )
+}
+
+function CommunityIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <circle cx="9" cy="9" r="3" />
+      <circle cx="16" cy="10" r="2.5" />
+      <path d="M3 19c1.2-3 3.5-4.5 6-4.5S13.8 16 15 19" />
+      <path d="M13 19c.7-2 2.2-3 4-3s3.2 1 4 3" />
     </svg>
   )
 }

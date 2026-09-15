@@ -29,8 +29,66 @@ export type {
   UnavailableRoute,
   HereVehicleParams,
 } from './domain/route'
-export { REPORT_STATUSES, isReportStatus } from './domain/report'
-export type { Report, ReportStatus, NewReport, ReportLocation } from './domain/report'
+export { REPORT_STATUSES, isReportStatus, ALERT_URGENCIES, isAlertUrgency, normalizeReportUrgency } from './domain/report'
+export type { Report, ReportStatus, NewReport, ReportLocation, AlertUrgency } from './domain/report'
+export {
+  ROUTE_ALERT,
+  emptyAlertStats,
+  applyConfirmationVote,
+  haversineMeters,
+  projectOnSegment,
+  pickRouteAlert,
+  formatDistanceLabel,
+  ALERT_URGENCY_LABEL,
+  ALERT_STATUS_LABEL,
+} from './domain/route-alert'
+export type {
+  AlertAnswer,
+  AlertPhase,
+  AlertPriority,
+  RouteAlertSource,
+  AlertStats,
+  EvaluatedRouteAlert,
+  TripAlertContext,
+} from './domain/route-alert'
+export {
+  PILOT_COMMUNITY,
+  PILOT_MARKS,
+  COMMUNITY_NEAR_RADIUS,
+  COMMUNITY_STATUS_LABEL,
+  assertCommunityDraft,
+  filterReportsNearCommunity,
+  buildCommunityFeed,
+} from './domain/community'
+export type {
+  Community,
+  CommunityStatus,
+  NewCommunity,
+  PilotMark,
+  CommunityFeedItem,
+} from './domain/community'
+export {
+  createCommunity,
+  listApprovedCommunities,
+  listCommunitiesByCreator,
+  listVisibleCommunities,
+  listPilotCommunities,
+  listPilotMarks,
+  getCommunity,
+  updatePendingCommunity,
+  deletePendingCommunity,
+  loadCommunityDetail,
+} from './services/community.service'
+export {
+  alertIdForReport,
+  alertIdForPilot,
+  listRouteAlertSources,
+  getAlertStats,
+  listAlertStats,
+  loadRouteAlertForTrip,
+  submitAlertConfirmation,
+  evaluateLocalRouteAlert,
+} from './services/route-alert.service'
 export {
   initFirebase,
   getFirebaseAuth,
@@ -50,8 +108,10 @@ export { saveUserProfile, getUserProfile, updateUserSetup } from './services/use
 export type { UserSetupUpdate } from './services/user.service'
 export {
   createTruck,
+  updateTruck,
   listTrucksByUser,
   getUserTruck,
   createReport,
   listReportsByTruckType,
+  listRecentReports,
 } from './services/database.service'

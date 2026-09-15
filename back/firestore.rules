@@ -60,13 +60,144 @@ service cloud.firestore {
     match /users/{userId}/trucks/{truckId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) && validTruck();
-      allow update, delete: if isOwner(userId);
+      allow update: if isOwner(userId) && validTruck();
+      allow delete: if isOwner(userId);
     }
 
     match /reports/{reportId} {
       allow read: if signedIn();
-      allow create: if signedIn() && request.resource.data.authorId == request.auth.uid;
+      allow create: if signedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'authorId', 'truckType', 'status', 'notes', 'latitude', 'longitude',
+          'urgency', 'createdAt'
+        ])
+        && request.resource.data.truckType in ['toco', 'truck', 'carreta_2_eixos', 'bitruck', 'bitrem']
+        && request.resource.data.status in ['passa', 'nao_passa']
+        && request.resource.data.urgency in ['normal', 'extreme']
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 500
+        && request.resource.data.latitude is number
+        && request.resource.data.latitude >= -90
+        && request.resource.data.latitude <= 90
+        && request.resource.data.longitude is number
+        && request.resource.data.longitude >= -180
+        && request.resource.data.longitude <= 180
+        && request.resource.data.createdAt == request.time;
       allow update, delete: if false;
+    }
+
+    match /alertStats/{alertId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'continues', 'cleared', 'priority', 'hidden', 'updatedAt'
+        ])
+        && request.resource.data.continues is number
+        && request.resource.data.cleared is number
+        && request.resource.data.continues >= 0
+        && request.resource.data.cleared >= 0
+        && request.resource.data.continues <= 1
+        && request.resource.data.cleared <= 1
+        && request.resource.data.continues + request.resource.data.cleared == 1
+        && request.resource.data.priority in ['normal', 'low']
+        && request.resource.data.hidden is bool
+        && request.resource.data.updatedAt == request.time;
+      allow update: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'continues', 'cleared', 'priority', 'hidden', 'updatedAt'
+        ])
+        && request.resource.data.continues is number
+        && request.resource.data.cleared is number
+        && request.resource.data.continues >= resource.data.continues
+        && request.resource.data.cleared >= resource.data.cleared
+        && request.resource.data.continues <= resource.data.continues + 1
+        && request.resource.data.cleared <= resource.data.cleared + 1
+        && (request.resource.data.continues + request.resource.data.cleared)
+            == (resource.data.continues + resource.data.cleared + 1)
+        && request.resource.data.priority in ['normal', 'low']
+        && request.resource.data.hidden is bool
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /alertConfirmations/{confirmationId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'alertId', 'userId', 'answer', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.alertId is string
+        && request.resource.data.alertId.size() > 0
+        && request.resource.data.answer in ['continues', 'cleared', 'unknown']
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.alertId == resource.data.alertId
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['answer', 'updatedAt'])
+        && request.resource.data.answer in ['continues', 'cleared', 'unknown']
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /communities/{communityId} {
+      allow read: if signedIn()
+        && (resource.data.status == 'approved'
+            || resource.data.creatorId == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.creatorId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasOnly([
+          'name', 'description', 'city', 'state', 'creatorId', 'status',
+          'latitude', 'longitude', 'createdAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 3
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() >= 8
+        && request.resource.data.description.size() <= 500
+        && request.resource.data.city is string
+        && request.resource.data.state is string
+        && request.resource.data.state.size() == 2
+        && request.resource.data.latitude is number
+        && request.resource.data.latitude >= -90
+        && request.resource.data.latitude <= 90
+        && request.resource.data.longitude is number
+        && request.resource.data.longitude >= -180
+        && request.resource.data.longitude <= 180
+        && request.resource.data.createdAt == request.time;
+      // Autor pode editar ou cancelar só enquanto o pedido está pendente.
+      // Aprovação fica no Console do Firebase até existir painel admin.
+      allow update: if signedIn()
+        && resource.data.creatorId == request.auth.uid
+        && resource.data.status == 'pending'
+        && request.resource.data.creatorId == resource.data.creatorId
+        && request.resource.data.status == 'pending'
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['name', 'description', 'city', 'state', 'latitude', 'longitude'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 3
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() >= 8
+        && request.resource.data.description.size() <= 500
+        && request.resource.data.city is string
+        && request.resource.data.state is string
+        && request.resource.data.state.size() == 2
+        && request.resource.data.latitude is number
+        && request.resource.data.latitude >= -90
+        && request.resource.data.latitude <= 90
+        && request.resource.data.longitude is number
+        && request.resource.data.longitude >= -180
+        && request.resource.data.longitude <= 180;
+      allow delete: if signedIn()
+        && resource.data.creatorId == request.auth.uid
+        && resource.data.status == 'pending';
     }
   }
 }
