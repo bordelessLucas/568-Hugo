@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { StyleSheet, Text, View } from 'react-native'
-import { dimensionWarnings, listPilotMarks, TRUCK_TYPE_OPTIONS } from '@rotatrucks/back'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  dimensionWarnings,
+  filterMapMarksForTruck,
+  formatRouteSummary,
+  listPilotMarks,
+  ROUTE_STATUS_LABEL,
+  TRUCK_TYPE_OPTIONS,
+  type RouteResult,
+} from '@rotatrucks/back'
 import { tokens } from '@rotatrucks/back/tokens'
 import { IconChip, IconFab } from '@/components/IconFab'
 import { MapLegendTutorial } from '@/components/MapLegendTutorial'
@@ -10,14 +18,16 @@ import { MockMap } from '@/components/MockMap'
 import { PlaceSearch } from '@/components/PlaceSearch'
 import { RouteAlertCard } from '@/components/RouteAlertCard'
 import { SetupNotice } from '@/components/SetupNotice'
+import { Icon } from '@/components/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useDeviceLocation } from '@/hooks/useDeviceLocation'
 import { useRouteAlerts } from '@/hooks/useRouteAlerts'
 import { hasSeenMapLegend, markMapLegendSeen } from '@/lib/map-onboarding'
 import type { PlaceHit } from '@/lib/places'
+import { pressStyle } from '@/lib/press'
+import { requestTruckRoute } from '@/lib/routing'
 
-/** Clearance above the tab bar edge (scene already excludes tab bar height). */
 const FAB_GAP = 20
 
 export function HomeScreen() {
@@ -29,33 +39,64 @@ export function HomeScreen() {
   const [destination, setDestination] = useState<PlaceHit | null>(null)
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [legendSeen, setLegendSeen] = useState(true)
+  const [result, setResult] = useState<RouteResult | null>(null)
+  const [routing, setRouting] = useState(false)
   const truck = auth.truck
-  const tags = routeTags(truck)
-  const marks = useMemo(
-    () =>
-      listPilotMarks('pilot-barra-velha').map((mark) => ({
-        id: mark.id,
-        latitude: mark.latitude,
-        longitude: mark.longitude,
-        status: mark.status,
-        label: mark.label,
-      })),
-    [],
-  )
+  const path = result?.status === 'compatible' ? result.path : []
+  const tags = routeTags(truck, result)
+  const routeBlocked = tags.includes('Não passa')
+
+  const marks = useMemo(() => {
+    const pilot = listPilotMarks('pilot-barra-velha').map((mark) => ({
+      id: mark.id,
+      latitude: mark.latitude,
+      longitude: mark.longitude,
+      status: mark.status,
+      label: mark.label,
+      truckType: mark.truckType,
+      urgency: mark.urgency === 'extreme' ? ('extreme' as const) : ('normal' as const),
+    }))
+    return filterMapMarksForTruck(pilot, truck?.type ?? null)
+  }, [truck?.type])
 
   const routeAlerts = useRouteAlerts({
     enabled: Boolean(auth.session) && location.status === 'ready',
     user: location.point,
     destination: destination?.point ?? null,
+    path,
     truckType: truck?.type ?? null,
   })
+
+  const alertOpen = Boolean(routeAlerts.alert)
 
   useEffect(() => {
     void hasSeenMapLegend().then((seen) => setLegendSeen(seen))
   }, [])
 
+  useEffect(() => {
+    if (!destination?.point || !location.point || !truck) {
+      setResult(null)
+      setRouting(false)
+      return
+    }
+    let active = true
+    setRouting(true)
+    void requestTruckRoute({
+      origin: location.point,
+      destination: destination.point,
+    }).then((next) => {
+      if (!active) return
+      setResult(next)
+      setRouting(false)
+    })
+    return () => {
+      active = false
+    }
+  }, [destination, location.point, truck])
+
   const onSelectPlace = (place: PlaceHit) => {
     setDestination(place)
+    setResult(null)
     if (!legendSeen) setTutorialOpen(true)
   }
 
@@ -71,6 +112,8 @@ export function HomeScreen() {
 
   const topPad = insets.top + tokens.space[3]
   const sidePad = Math.max(insets.left, insets.right, tokens.space[4])
+  const statusLine = routeStatusLine(routing, result, Boolean(destination && truck))
+  const locationBanner = locationBannerCopy(settings.shareLocation, location.status)
 
   return (
     <View style={styles.root}>
@@ -78,8 +121,9 @@ export function HomeScreen() {
         <MockMap
           userLocation={location.point}
           destination={destination?.point ?? null}
-          blocked={tags.includes('Não passa')}
+          blocked={routeBlocked}
           marks={marks}
+          path={path}
           highlightId={
             routeAlerts.alert?.source.kind === 'pilot'
               ? routeAlerts.alert.source.id.replace(/^pilot:/, '')
@@ -98,7 +142,20 @@ export function HomeScreen() {
           ]}
           pointerEvents="box-none"
         >
-          {auth.truckPending ? (
+          {!alertOpen ? (
+            <Text style={styles.mapSupportLabel} accessibilityRole="text">
+              Mapa de apoio (simulado)
+            </Text>
+          ) : null}
+
+          {locationBanner ? (
+            <View style={styles.locationBanner} accessibilityRole="alert">
+              <Icon name="locate-outline" size={18} color={tokens.color.danger} />
+              <Text style={styles.locationBannerText}>{locationBanner}</Text>
+            </View>
+          ) : null}
+
+          {auth.truckPending && !alertOpen ? (
             <View style={styles.notice}>
               <SetupNotice onConfigure={auth.openOnboarding} />
             </View>
@@ -108,23 +165,49 @@ export function HomeScreen() {
             near={location.point}
             tags={tags}
             onSelect={onSelectPlace}
-            onClear={() => setDestination(null)}
+            onClear={() => {
+              setDestination(null)
+              setResult(null)
+            }}
           />
 
-          <View style={styles.chips} pointerEvents="box-none">
-            <IconChip icon="bus-outline" label={truckLabel} />
-            {destination ? <IconChip icon="flag-outline" label="Destino" active /> : null}
-            {!destination ? (
-              <IconChip icon="alert-circle-outline" label="Só urgência extrema" />
-            ) : null}
-          </View>
-
-          {destination ? (
-            <View style={styles.legendRow} pointerEvents="none">
-              <LegendPill color={tokens.color.pass} label="Passa" />
-              <LegendPill color={tokens.color.danger} label="Não passa" />
-              <LegendPill color={tokens.color.brand} label="Você" />
+          {!alertOpen && !destination ? (
+            <View style={styles.chips} pointerEvents="box-none">
+              <IconChip icon="bus-outline" label={truckLabel} />
+              <IconChip
+                icon="alert-circle-outline"
+                label="Só urgência extrema"
+                tone="muted"
+              />
             </View>
+          ) : null}
+
+          {!alertOpen && destination ? (
+            <Text style={styles.truckCaption} numberOfLines={1}>
+              {truckLabel} · Destino
+            </Text>
+          ) : null}
+
+          {statusLine ? (
+            <Text
+              style={[
+                styles.statusPill,
+                result?.status === 'blocked' ? styles.statusBlocked : null,
+              ]}
+            >
+              {statusLine}
+            </Text>
+          ) : null}
+
+          {destination && !alertOpen ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ver legenda do mapa"
+              onPress={() => setTutorialOpen(true)}
+              style={pressStyle(styles.legendLink, { opacity: 0.8 })}
+            >
+              <Text style={styles.legendLinkText}>Cores do mapa</Text>
+            </Pressable>
           ) : null}
         </View>
 
@@ -143,6 +226,7 @@ export function HomeScreen() {
             <RouteAlertCard
               alert={routeAlerts.alert}
               busy={routeAlerts.busy}
+              hapticEnabled={settings.sounds}
               onUnderstand={routeAlerts.understand}
               onDismiss={routeAlerts.dismiss}
               onConfirmContinues={() => {
@@ -197,21 +281,50 @@ export function HomeScreen() {
   )
 }
 
-function LegendPill({ color, label }: { color: string; label: string }) {
-  return (
-    <View style={styles.pill}>
-      <View style={[styles.pillDot, { backgroundColor: color }]} />
-      <Text style={styles.pillLabel}>{label}</Text>
-    </View>
-  )
+function locationBannerCopy(
+  shareLocation: boolean,
+  status: 'pending' | 'ready' | 'denied' | 'unavailable',
+): string | null {
+  if (!shareLocation) {
+    return 'Localização desligada em Ajustes. Sem ela, avisos na rota e distância não funcionam.'
+  }
+  if (status === 'denied') {
+    return 'Localização bloqueada. Ative no aparelho ou em Ajustes → Usar localização.'
+  }
+  if (status === 'unavailable') {
+    return 'GPS indisponível agora. O mapa segue, mas a origem pode ficar parada.'
+  }
+  return null
+}
+
+function routeStatusLine(
+  routing: boolean,
+  result: RouteResult | null,
+  ready: boolean,
+): string | null {
+  if (!ready) return null
+  if (routing) return ROUTE_STATUS_LABEL.loading
+  if (!result) return null
+  if (result.status === 'compatible') {
+    return `${ROUTE_STATUS_LABEL.compatible} · ${formatRouteSummary(result)}`
+  }
+  if (result.status === 'blocked') return result.message || ROUTE_STATUS_LABEL.blocked
+  return result.message || ROUTE_STATUS_LABEL.unavailable
 }
 
 function routeTags(
-  truck: { heightMeters: number; widthMeters: number; lengthMeters: number; totalWeightKg: number } | null,
+  truck: {
+    heightMeters: number
+    widthMeters: number
+    lengthMeters: number
+    totalWeightKg: number
+  } | null,
+  result: RouteResult | null,
 ): string[] {
   const tags: string[] = []
   if (!truck) tags.push('Sem caminhão')
-  if (truck && dimensionWarnings(truck).length > 0) tags.push('Não passa')
+  if (truck && dimensionWarnings(truck).length > 0) tags.push('Medidas')
+  if (result?.status === 'blocked') tags.push('Não passa')
   return tags
 }
 
@@ -229,7 +342,35 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 2,
-    gap: tokens.space[3],
+    gap: tokens.space[2],
+  },
+  mapSupportLabel: {
+    alignSelf: 'flex-start',
+    fontFamily: tokens.font.label,
+    fontSize: 11,
+    color: tokens.color.muted,
+    backgroundColor: 'rgba(255,255,255,0.88)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    overflow: 'hidden',
+  },
+  locationBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: tokens.space[2],
+    padding: tokens.space[3],
+    borderRadius: tokens.radius.field,
+    borderWidth: 1,
+    borderColor: '#F0C4C0',
+    backgroundColor: 'rgba(255,248,247,0.96)',
+  },
+  locationBannerText: {
+    flex: 1,
+    fontFamily: tokens.font.body,
+    fontSize: 13,
+    lineHeight: 18,
+    color: tokens.color.ink,
   },
   notice: {
     marginBottom: 0,
@@ -239,32 +380,44 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  legendRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingBottom: tokens.space[2],
-  },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  truckCaption: {
+    alignSelf: 'flex-start',
+    fontFamily: tokens.font.label,
+    fontSize: 12,
+    color: tokens.color.muted,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    overflow: 'hidden',
+  },
+  legendLink: {
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+  },
+  legendLinkText: {
+    fontFamily: tokens.font.label,
+    fontSize: 12,
+    color: tokens.color.brand,
+  },
+  statusPill: {
+    alignSelf: 'flex-start',
+    fontFamily: tokens.font.label,
+    fontSize: 12,
+    color: tokens.color.ink,
+    backgroundColor: 'rgba(255,255,255,0.96)',
     borderWidth: 1,
     borderColor: tokens.color.line,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    overflow: 'hidden',
   },
-  pillDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 99,
-  },
-  pillLabel: {
-    fontFamily: tokens.font.label,
-    fontSize: 11,
-    color: tokens.color.ink,
+  statusBlocked: {
+    color: tokens.color.onBrand,
+    backgroundColor: tokens.color.danger,
+    borderColor: tokens.color.danger,
   },
   fabDock: {
     position: 'absolute',

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { tokens } from '@rotatrucks/back/tokens'
 import { Icon, type IconName } from '@/components/Icon'
+import { pressScaleInner } from '@/lib/press'
 
 interface IconFabProps {
   icon: IconName
@@ -25,12 +26,16 @@ export function IconFab({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
-      style={({ pressed }) => [styles.fab, palette.fab, pressed ? styles.pressed : null]}
+      style={styles.fabHit}
     >
-      <Icon name={icon} size={26} color={palette.icon} />
-      <Text style={[styles.caption, { color: palette.caption }]} numberOfLines={1}>
-        {label}
-      </Text>
+      {({ pressed }) => (
+        <View style={[styles.fab, palette.fab, pressScaleInner(pressed)]}>
+          <Icon name={icon} size={26} color={palette.icon} />
+          <Text style={[styles.caption, { color: palette.caption }]} numberOfLines={1}>
+            {label}
+          </Text>
+        </View>
+      )}
     </Pressable>
   )
 }
@@ -40,18 +45,45 @@ interface IconChipProps {
   label: string
   onPress?: () => void
   active?: boolean
+  /** Visual only — not interactive (info chip). */
+  tone?: 'default' | 'muted'
 }
 
-export function IconChip({ icon, label, onPress, active }: IconChipProps) {
+export function IconChip({ icon, label, onPress, active, tone = 'default' }: IconChipProps) {
+  const muted = tone === 'muted'
   const content = (
-    <View style={[styles.chip, active ? styles.chipOn : null]}>
-      <Icon name={icon} size={16} color={active ? tokens.color.brand : tokens.color.ink} />
-      <Text style={[styles.chipLabel, active ? styles.chipLabelOn : null]}>{label}</Text>
+    <View
+      style={[
+        styles.chip,
+        active ? styles.chipOn : null,
+        muted ? styles.chipMuted : null,
+      ]}
+      accessibilityRole={onPress ? undefined : 'text'}
+    >
+      <Icon
+        name={icon}
+        size={16}
+        color={active ? tokens.color.brand : muted ? tokens.color.muted : tokens.color.ink}
+      />
+      <Text
+        style={[
+          styles.chipLabel,
+          active ? styles.chipLabelOn : null,
+          muted ? styles.chipLabelMuted : null,
+        ]}
+      >
+        {label}
+      </Text>
     </View>
   )
   if (!onPress) return content
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+    >
       {content}
     </Pressable>
   )
@@ -94,6 +126,10 @@ const toneStyles = {
 } as const
 
 const styles = StyleSheet.create({
+  fabHit: {
+    width: 64,
+    height: 64,
+  },
   fab: {
     width: 64,
     height: 64,
@@ -106,10 +142,6 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
-  },
-  pressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.97 }],
   },
   caption: {
     fontFamily: tokens.font.label,
@@ -130,6 +162,10 @@ const styles = StyleSheet.create({
     borderColor: tokens.color.brand,
     backgroundColor: tokens.color.fog,
   },
+  chipMuted: {
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderStyle: 'dashed',
+  },
   chipLabel: {
     fontFamily: tokens.font.label,
     fontSize: 12,
@@ -137,5 +173,8 @@ const styles = StyleSheet.create({
   },
   chipLabelOn: {
     color: tokens.color.brand,
+  },
+  chipLabelMuted: {
+    color: tokens.color.muted,
   },
 })

@@ -15,6 +15,7 @@ interface UseRouteAlertsArgs {
   enabled: boolean
   user: Point | null
   destination: Point | null
+  path?: Point[] | null
   truckType: TruckType | null
 }
 
@@ -31,6 +32,7 @@ export function useRouteAlerts({
   enabled,
   user,
   destination,
+  path = null,
   truckType,
 }: UseRouteAlertsArgs): UseRouteAlertsResult {
   const [alert, setAlert] = useState<EvaluatedRouteAlert | null>(null)
@@ -71,6 +73,7 @@ export function useRouteAlerts({
         user,
         routeOrigin: destination ? originRef.current : null,
         destination,
+        path: path && path.length >= 2 ? path : null,
         truckType,
         seenIds: seenRef.current,
         confirmedIds: confirmedRef.current,
@@ -105,7 +108,7 @@ export function useRouteAlerts({
       if (requestId !== requestIdRef.current) return
       setError(toUserMessage(caught))
     }
-  }, [destination, enabled, truckType, user])
+  }, [destination, enabled, path, truckType, user])
 
   useEffect(() => {
     void refresh()

@@ -29,6 +29,17 @@ export type {
   UnavailableRoute,
   HereVehicleParams,
 } from './domain/route'
+export {
+  FIXTURE_BARRA_VELHA_PATH,
+  FIXTURE_COMPATIBLE_ROUTE,
+  FIXTURE_BLOCKED_ROUTE,
+  FIXTURE_UNAVAILABLE_ROUTE,
+  FIXTURE_HERE_OK_BODY,
+  FIXTURE_HERE_BLOCKED_BODY,
+} from './domain/route-fixtures'
+export { parseHereRoute, calculateHereTruckRoute } from './services/here-routing'
+export { ROUTE_STATUS_LABEL, formatRouteSummary, filterMapMarksForTruck } from './domain/map-route-ui'
+export type { MapMarkLike } from './domain/map-route-ui'
 export { REPORT_STATUSES, isReportStatus, ALERT_URGENCIES, isAlertUrgency, normalizeReportUrgency } from './domain/report'
 export type { Report, ReportStatus, NewReport, ReportLocation, AlertUrgency } from './domain/report'
 export {
@@ -37,6 +48,7 @@ export {
   applyConfirmationVote,
   haversineMeters,
   projectOnSegment,
+  progressAlongPath,
   pickRouteAlert,
   formatDistanceLabel,
   ALERT_URGENCY_LABEL,

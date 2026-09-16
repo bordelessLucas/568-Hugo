@@ -58,7 +58,7 @@ export async function calculateHereTruckRoute(input: {
   return parseHereRoute(body, response.ok)
 }
 
-function parseHereRoute(body: unknown, ok: boolean): RouteResult {
+export function parseHereRoute(body: unknown, ok: boolean): RouteResult {
   if (!isRecord(body)) {
     return { status: 'unavailable', message: 'Resposta inválida do roteamento.' }
   }

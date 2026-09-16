@@ -54,6 +54,8 @@ interface MockMapProps {
   destination: GeoPoint | null
   blocked: boolean
   marks?: MapMark[]
+  /** Polyline da rota (HERE / fixture). Sem path, desenha reta eu→destino. */
+  path?: GeoPoint[]
   /** Destaca a marcação do aviso ativo na Home. */
   highlightId?: string | null
 }
@@ -63,17 +65,20 @@ export function MockMap({
   destination,
   blocked,
   marks = [],
+  path = [],
   highlightId = null,
 }: MockMapProps) {
   const viewBox = useMemo(
-    () => fitViewBox(userLocation, destination, marks),
-    [destination, marks, userLocation],
+    () => fitViewBox(userLocation, destination, marks, path),
+    [destination, marks, path, userLocation],
   )
   const land = LAND.map((point) => place(point).join(',')).join(' ')
-  const route =
-    userLocation && destination
-      ? `M ${place(userLocation).join(' ')} L ${place(destination).join(' ')}`
-      : ''
+  const routePath =
+    path.length >= 2
+      ? pathToSvg(path)
+      : userLocation && destination
+        ? `M ${place(userLocation).join(' ')} L ${place(destination).join(' ')}`
+        : ''
 
   return (
     <View style={styles.wrap} accessibilityLabel="Mapa de apoio RotaTrucks">
@@ -132,10 +137,10 @@ export function MockMap({
           )
         })}
 
-        {route ? (
+        {routePath ? (
           <>
             <Path
-              d={route}
+              d={routePath}
               fill="none"
               stroke={blocked ? tokens.color.danger : tokens.color.brand}
               strokeWidth="10"
@@ -143,7 +148,7 @@ export function MockMap({
               strokeLinecap="round"
             />
             <Path
-              d={route}
+              d={routePath}
               fill="none"
               stroke={blocked ? tokens.color.danger : tokens.color.brand}
               strokeWidth="4"
@@ -180,14 +185,25 @@ function place(point: GeoPoint): [number, number] {
   return [x, y]
 }
 
+function pathToSvg(path: GeoPoint[]): string {
+  return path
+    .map((point, index) => {
+      const [x, y] = place(point)
+      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`
+    })
+    .join(' ')
+}
+
 function fitViewBox(
   user: GeoPoint | null,
   destination: GeoPoint | null,
   marks: MapMark[],
+  path: GeoPoint[] = [],
 ): string {
   const focus: GeoPoint[] = []
   if (user) focus.push(user)
   if (destination) focus.push(destination)
+  path.forEach((point) => focus.push(point))
   if (focus.length === 0 && marks.length > 0) {
     marks.slice(0, 6).forEach((mark) =>
       focus.push({ latitude: mark.latitude, longitude: mark.longitude }),

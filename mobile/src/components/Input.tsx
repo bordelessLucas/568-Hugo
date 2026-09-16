@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { tokens } from '@rotatrucks/back/tokens'
 import { Icon, type IconName } from '@/components/Icon'
+import { pressStyle } from '@/lib/press'
 
 interface InputProps {
   label: string
@@ -49,6 +50,8 @@ export function Input({
             onPress={() => setVisible((current) => !current)}
             accessibilityRole="button"
             accessibilityLabel={visible ? 'Ocultar senha' : 'Mostrar senha'}
+            hitSlop={8}
+            style={pressStyle(styles.eyeHit, { opacity: 0.7 })}
           >
             <Icon
               name={visible ? 'eye-off-outline' : 'eye-outline'}
@@ -94,6 +97,12 @@ const styles = StyleSheet.create({
   },
   fieldError: {
     borderColor: tokens.color.danger,
+  },
+  eyeHit: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   input: {
     flex: 1,

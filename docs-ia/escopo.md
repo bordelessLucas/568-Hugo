@@ -1,4 +1,4 @@
-# Escopo - RotaTrucks
+﻿# Escopo - RotaTrucks
 
 Quem usa: caminhoneiro no celular, em movimento ou parado. Consulta rapida. Nao e painel de escritorio.
 
@@ -14,19 +14,18 @@ O que o produto resolve: saber se a via passa ou nao passa para o tipo e o taman
 - Mobile: tela de reportar ocorrencia (passa / nao passa) gravando no Firestore
 - Comunidade: lista, detalhe/feed, pedir/editar/cancelar pedido pendente (ver docs-ia/comunidades.md)
 - Mobile: avisos na rota estilo Waze + Continua la? (ver docs-ia/avisos-rota.md)
+- Casca HERE sem chave: fixtures, client de rota web/mobile, RouteMap no web, path no MockMap, avisos com polyline, pins filtrados, checklist (ver docs-ia/here-checklist.md)
 
 ## Decidir juntos (PDFs / sprint)
 
-- Listar marcacoes da comunidade no mapa, filtradas pelo caminhao
 - Seed piloto Barra Velha / SC (viaduto 4,5 m, SC-401) - seed ja existe no back
-- Levar a tela de ocorrencia tambem para o web
 
 ## Fora ate chave / decisao de produto
 
-- Rota HERE real
+- Ligar secret HERE_API_KEY + URL da function (amanha)
 - SOS, modo seguro, pontos seguros
 - Cobranca Premium / AdMob
 - Ingestao DNIT / DER
 - Painel admin de aprovacao de comunidades (hoje: Console Firebase)
 
-Ver canvas rotatrucks-feature-roadmap no Cursor.
+Ver docs-ia/here-checklist.md.

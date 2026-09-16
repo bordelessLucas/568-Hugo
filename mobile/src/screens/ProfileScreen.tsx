@@ -18,6 +18,7 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { useAuth } from '@/contexts/AuthContext'
 import { toUserMessage } from '@/lib/auth-errors'
 import { formatMeters, formatWeight, parseMeasure } from '@/lib/measures'
+import { pressStyle } from '@/lib/press'
 
 type Mode = 'list' | 'add' | 'edit'
 
@@ -217,7 +218,10 @@ function TruckForm({
         <Pressable
           key={value}
           onPress={() => setTruckType(value)}
-          style={[styles.choice, truckType === value ? styles.choiceOn : null]}
+          style={pressStyle([styles.choice, truckType === value ? styles.choiceOn : null], {
+            opacity: 0.9,
+            pressed: styles.choicePressed,
+          })}
         >
           <Icon
             name="bus-outline"
@@ -329,6 +333,9 @@ const styles = StyleSheet.create({
   choiceOn: {
     borderColor: tokens.color.brand,
     backgroundColor: tokens.color.fog,
+  },
+  choicePressed: {
+    backgroundColor: '#EAF4FB',
   },
   error: {
     color: tokens.color.danger,

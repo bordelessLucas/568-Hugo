@@ -71,6 +71,10 @@ export interface TripAlertContext {
   /** Início fixo do trajeto (capturado ao escolher o destino). */
   routeOrigin: GeoPoint | null
   destination: GeoPoint | null
+  /**
+   * Geometria da rota (HERE ou fixture). Quando ausente, usa reta origem→destino.
+   */
+  path?: ReadonlyArray<GeoPoint> | null
   truckType: TruckType | null
   /** IDs já vistos neste trajeto (Entendi). */
   seenIds: ReadonlySet<string>
@@ -175,6 +179,40 @@ function matchesTruck(source: RouteAlertSource, truckType: TruckType | null): bo
   return source.truckType === truckType || source.status === 'nao_passa'
 }
 
+/** Distância acumulada ao longo de uma polyline até o ponto mais próximo. */
+export function progressAlongPath(
+  point: GeoPoint,
+  path: ReadonlyArray<GeoPoint>,
+): { distanceMeters: number; alongFromStartMeters: number } | null {
+  if (path.length < 2) return null
+  let bestDist = Number.POSITIVE_INFINITY
+  let bestAlong = 0
+  let walked = 0
+  for (let i = 0; i < path.length - 1; i += 1) {
+    const start = path[i]
+    const end = path[i + 1]
+    if (!start || !end) continue
+    const segLen = haversineMeters(start, end)
+    const proj = projectOnSegment(point, start, end)
+    if (proj.distanceMeters < bestDist) {
+      bestDist = proj.distanceMeters
+      bestAlong = walked + proj.alongFromStartMeters
+    }
+    walked += segLen
+  }
+  if (!Number.isFinite(bestDist)) return null
+  return { distanceMeters: bestDist, alongFromStartMeters: bestAlong }
+}
+
+function corridorEnds(
+  ctx: TripAlertContext,
+): { start: GeoPoint; end: GeoPoint } | null {
+  if (ctx.routeOrigin && ctx.destination) {
+    return { start: ctx.routeOrigin, end: ctx.destination }
+  }
+  return null
+}
+
 function isCoolingDown(
   alertId: string,
   dismissedUntil: ReadonlyMap<string, number>,
@@ -221,7 +259,8 @@ export function pickRouteAlert(
       longitude: source.longitude,
     }
 
-    if (!ctx.destination || !ctx.routeOrigin) {
+    const ends = corridorEnds(ctx)
+    if (!ends) {
       if (source.urgency !== 'extreme') continue
       const distanceMeters = haversineMeters(ctx.user, point)
       if (distanceMeters > ROUTE_ALERT.extremeNearMeters) continue
@@ -237,12 +276,13 @@ export function pickRouteAlert(
       continue
     }
 
-    const origin = ctx.routeOrigin
-    const alertProj = projectOnSegment(point, origin, ctx.destination)
-    if (alertProj.distanceMeters > ROUTE_ALERT.corridorHalfWidthMeters) continue
+    const path = ctx.path && ctx.path.length >= 2 ? ctx.path : [ends.start, ends.end]
+    const userProg = progressAlongPath(ctx.user, path)
+    const alertProg = progressAlongPath(point, path)
+    if (!userProg || !alertProg) continue
+    if (alertProg.distanceMeters > ROUTE_ALERT.corridorHalfWidthMeters) continue
 
-    const userProj = projectOnSegment(ctx.user, origin, ctx.destination)
-    const alongMeters = alertProj.alongFromStartMeters - userProj.alongFromStartMeters
+    const alongMeters = alertProg.alongFromStartMeters - userProg.alongFromStartMeters
     const distanceMeters = haversineMeters(ctx.user, point)
 
     if (alongMeters > ROUTE_ALERT.passedMeters) {

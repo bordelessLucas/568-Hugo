@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { tokens } from '@rotatrucks/back/tokens'
 import { Icon, type IconName } from '@/components/Icon'
+import { pressStyle } from '@/lib/press'
 
 interface ScreenHeaderProps {
   title: string
@@ -20,7 +21,8 @@ export function ScreenHeader({ title, subtitle, icon, back }: ScreenHeaderProps)
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel="Voltar"
-            style={styles.back}
+            hitSlop={8}
+            style={pressStyle(styles.back, { opacity: 0.75 })}
           >
             <Icon name="chevron-back" size={24} color={tokens.color.ink} />
           </Pressable>

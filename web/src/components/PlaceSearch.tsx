@@ -7,9 +7,10 @@ interface PlaceSearchProps {
   near: GeoPoint | null
   tags?: string[]
   onSelect: (place: PlaceHit) => void
+  onClear?: () => void
 }
 
-export function PlaceSearch({ near, tags = [], onSelect }: PlaceSearchProps) {
+export function PlaceSearch({ near, tags = [], onSelect, onClear }: PlaceSearchProps) {
   const listId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState('')
@@ -114,6 +115,7 @@ export function PlaceSearch({ near, tags = [], onSelect }: PlaceSearchProps) {
               setHits([])
               setOpen(false)
               setStatus('idle')
+              onClear?.()
             }}
             className="font-body text-[13px] font-bold text-muted"
           >

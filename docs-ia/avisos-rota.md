@@ -57,6 +57,11 @@ Home (GPS ok)
 ## Fora deste corte
 
 - Push com app fechado
-- HERE real (trocar linha reta pela geometria)
-- Web Home com o mesmo cartão
+- HERE real (trocar fixture / unavailable pela function + secret)
+- Web Home com o mesmo cartão de avisos
 - Painel admin de moderação de avisos
+
+## Geometria
+
+- Com `path` (HERE ou fixture): corredor ao longo da polyline
+- Sem `path`: reta origem → destino (comportamento anterior)

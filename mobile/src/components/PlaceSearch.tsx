@@ -92,6 +92,8 @@ export function PlaceSearch({ near, tags = [], onSelect, onClear }: PlaceSearchP
             }}
             accessibilityRole="button"
             accessibilityLabel="Limpar destino"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.clearHit}
           >
             <Icon name="close-circle" size={20} color={tokens.color.muted} />
           </Pressable>
@@ -153,7 +155,14 @@ function TagRow({ tags }: { tags: string[] }) {
   return (
     <View style={styles.tags}>
       {tags.map((tag) => (
-        <Text key={tag} style={styles.tag}>
+        <Text
+          key={tag}
+          style={[
+            styles.tag,
+            tag === 'Não passa' ? styles.tagDanger : null,
+            tag === 'Medidas' ? styles.tagWarn : null,
+          ]}
+        >
           {tag}
         </Text>
       ))}
@@ -198,6 +207,12 @@ const styles = StyleSheet.create({
     fontSize: tokens.size.caption,
     color: tokens.color.ink,
   },
+  clearHit: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   panel: {
     borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.96)',
@@ -240,13 +255,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tag: {
-    backgroundColor: 'rgba(197,54,43,0.1)',
-    color: tokens.color.danger,
+    backgroundColor: tokens.color.fog,
+    color: tokens.color.ink,
     fontFamily: tokens.font.label,
     fontSize: 12,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
     overflow: 'hidden',
+  },
+  tagDanger: {
+    backgroundColor: 'rgba(197,54,43,0.1)',
+    color: tokens.color.danger,
+  },
+  tagWarn: {
+    backgroundColor: 'rgba(232,137,15,0.15)',
+    color: tokens.color.accentInk,
   },
 })

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native'
+import { StyleSheet, Switch, Text, View } from 'react-native'
 import { tokens } from '@rotatrucks/back/tokens'
 import { Container } from '@/components/Container'
 import { Icon, type IconName } from '@/components/Icon'
@@ -13,107 +13,39 @@ export function SettingsScreen() {
       <View style={styles.stack}>
         <ScreenHeader
           title="Ajustes"
-          subtitle="Preferências locais neste aparelho."
+          subtitle="Só o que já funciona neste aparelho."
           icon="settings-outline"
         />
 
         <View style={styles.card}>
-          <View style={styles.cardHead}>
-            <Icon name="card-outline" size={18} color={tokens.color.brand} />
-            <Text style={styles.caption}>Assinatura</Text>
-          </View>
-          <Text style={styles.hint}>A cobrança não entra nesta versão.</Text>
-          <View style={styles.row}>
-            <Option
-              icon="gift-outline"
-              label="Gratuito"
-              selected={settings.plan === 'gratuito'}
-              onPress={() => settings.setPlan('gratuito')}
-            />
-            <Option
-              icon="diamond-outline"
-              label="Premium"
-              selected={settings.plan === 'premium'}
-              onPress={() => settings.setPlan('premium')}
-            />
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.cardHead}>
-            <Icon name="color-palette-outline" size={18} color={tokens.color.brand} />
-            <Text style={styles.caption}>Aparência</Text>
-          </View>
-          <View style={styles.row}>
-            <Option
-              icon="sunny-outline"
-              label="Claro"
-              selected={settings.theme === 'light'}
-              onPress={() => settings.setTheme('light')}
-            />
-            <Option
-              icon="moon-outline"
-              label="Escuro"
-              selected={settings.theme === 'dark'}
-              onPress={() => settings.setTheme('dark')}
-            />
-          </View>
-        </View>
-
-        <View style={styles.card}>
           <Toggle
-            icon="notifications-outline"
-            label="Notificações"
-            hint="Preferência local neste aparelho."
-            value={settings.notifications}
-            onChange={settings.setNotifications}
+            icon="locate-outline"
+            label="Usar localização"
+            hint="Origem do mapa, avisos na rota e distância até o destino."
+            value={settings.shareLocation}
+            onChange={settings.setShareLocation}
           />
           <Toggle
-            icon="volume-high-outline"
-            label="Sons do sistema"
-            hint="Sons de aviso do aplicativo."
+            icon="phone-portrait-outline"
+            label="Vibração nos avisos"
+            hint="Aviso extremo no mapa vibra o aparelho (se o sistema permitir)."
             value={settings.sounds}
             onChange={settings.setSounds}
           />
         </View>
 
         <View style={styles.card}>
-          <Toggle
-            icon="locate-outline"
-            label="Usar localização"
-            hint="Origem do mapa e distância até o destino."
-            value={settings.shareLocation}
-            onChange={settings.setShareLocation}
-          />
-          <Toggle
-            icon="create-outline"
-            label="Assinar marcações com o nome"
-            hint="Ocorrências levam o nome da conta."
-            value={settings.signReports}
-            onChange={settings.setSignReports}
-          />
+          <View style={styles.cardHead}>
+            <Icon name="time-outline" size={18} color={tokens.color.muted} />
+            <Text style={styles.captionMuted}>Em breve</Text>
+          </View>
+          <Text style={styles.hint}>
+            Tema, notificações push, sons e assinatura Premium ainda não estão ligados nesta
+            versão — por isso não aparecem como opções ativas.
+          </Text>
         </View>
       </View>
     </Container>
-  )
-}
-
-function Option({
-  icon,
-  label,
-  selected,
-  onPress,
-}: {
-  icon: IconName
-  label: string
-  selected: boolean
-  onPress: () => void
-}) {
-  return (
-    <Pressable onPress={onPress} style={[styles.option, selected ? styles.optionOn : null]}>
-      <Icon name={icon} size={18} color={selected ? tokens.color.brand : tokens.color.muted} />
-      <Text style={styles.optionLabel}>{label}</Text>
-    </Pressable>
   )
 }
 
@@ -162,28 +94,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: tokens.space[2],
   },
-  caption: {
+  captionMuted: {
     fontFamily: tokens.font.label,
     fontSize: tokens.size.caption,
-    color: tokens.color.brand,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: tokens.space[2],
-  },
-  option: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderColor: tokens.color.line,
-    borderRadius: tokens.radius.field,
-    padding: tokens.space[3],
-  },
-  optionOn: {
-    borderColor: tokens.color.brand,
-    backgroundColor: tokens.color.fog,
+    color: tokens.color.muted,
   },
   optionLabel: {
     fontFamily: tokens.font.label,

@@ -19,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useDeviceLocation } from '@/hooks/useDeviceLocation'
 import { toUserMessage } from '@/lib/auth-errors'
+import { pressStyle } from '@/lib/press'
 
 const STATUS_LABEL: Record<ReportStatus, string> = {
   passa: 'Passa',
@@ -111,7 +112,13 @@ export function ReportScreen() {
           <Pressable
             key={value}
             onPress={() => setTruckType(value)}
-            style={[styles.choice, truckType === value ? styles.choiceOn : null]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: truckType === value }}
+            accessibilityLabel={TRUCK_TYPE_OPTIONS[value].label}
+            style={pressStyle([styles.choice, truckType === value ? styles.choiceOn : null], {
+              opacity: 0.9,
+              pressed: styles.choicePressed,
+            })}
           >
             <Icon
               name="bus-outline"
@@ -128,7 +135,13 @@ export function ReportScreen() {
             <Pressable
               key={value}
               onPress={() => setStatus(value)}
-              style={[styles.choice, styles.half, status === value ? styles.choiceOn : null]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: status === value }}
+              accessibilityLabel={STATUS_LABEL[value]}
+              style={pressStyle(
+                [styles.choice, styles.half, status === value ? styles.choiceOn : null],
+                { opacity: 0.9, pressed: styles.choicePressed },
+              )}
             >
               <Icon
                 name={value === 'passa' ? 'checkmark-circle-outline' : 'close-circle-outline'}
@@ -150,13 +163,26 @@ export function ReportScreen() {
           label="Observações"
           value={notes}
           onChangeText={setNotes}
-          placeholder={extreme ? 'Obrigatório na urgência extrema' : 'Opcional'}
+          placeholder={extreme ? 'Ex.: acidente grave na pista' : 'Opcional'}
           icon="document"
+          error={
+            extreme && notes.trim().length > 0 && notes.trim().length < 8
+              ? 'Na urgência extrema, use pelo menos 8 caracteres.'
+              : undefined
+          }
         />
+        {extreme ? (
+          <Text style={styles.muted}>
+            Urgência extrema exige uma descrição curta do risco (mínimo 8 caracteres).
+          </Text>
+        ) : null}
 
         <Pressable
           onPress={() => setExtreme((value) => !value)}
-          style={[styles.choice, extreme ? styles.choiceDanger : null]}
+          style={pressStyle([styles.choice, extreme ? styles.choiceDanger : null], {
+            opacity: 0.9,
+            pressed: styles.choicePressed,
+          })}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: extreme }}
           accessibilityLabel="Marcar como urgência extrema"
@@ -185,7 +211,9 @@ export function ReportScreen() {
               ? 'Localização pronta para gravar o ponto.'
               : location.status === 'denied'
                 ? 'Localização bloqueada.'
-                : 'Buscando localização…'}
+                : location.status === 'unavailable'
+                  ? 'Localização indisponível agora.'
+                  : 'Buscando localização…'}
           </Text>
         </View>
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -225,6 +253,9 @@ const styles = StyleSheet.create({
   choiceOn: {
     borderColor: tokens.color.brand,
     backgroundColor: tokens.color.fog,
+  },
+  choicePressed: {
+    backgroundColor: '#EAF4FB',
   },
   choiceDanger: {
     borderColor: tokens.color.danger,

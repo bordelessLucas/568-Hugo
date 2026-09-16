@@ -7,20 +7,39 @@ import { hereMapsConfigured } from '../lib/routing.ts'
 const STYLE = 'https://tiles.openfreemap.org/styles/liberty'
 const BRAZIL: [number, number] = [-51.9, -14.2]
 
+export interface RouteMapMark {
+  id: string
+  latitude: number
+  longitude: number
+  status: 'passa' | 'nao_passa'
+  label?: string
+}
+
 interface RouteMapProps {
   userLocation: GeoPoint | null
   destination: GeoPoint | null
   focus: GeoPoint | null
   path: GeoPoint[]
+  marks?: RouteMapMark[]
+  blocked?: boolean
   onPick: (point: GeoPoint) => void
 }
 
-export function RouteMap({ userLocation, destination, focus, path, onPick }: RouteMapProps) {
+export function RouteMap({
+  userLocation,
+  destination,
+  focus,
+  path,
+  marks = [],
+  blocked = false,
+  onPick,
+}: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<Map | null>(null)
   const pickRef = useRef(onPick)
   const userMarker = useRef<Marker | null>(null)
   const destinationMarker = useRef<Marker | null>(null)
+  const markMarkers = useRef<Marker[]>([])
 
   pickRef.current = onPick
 
@@ -48,6 +67,7 @@ export function RouteMap({ userLocation, destination, focus, path, onPick }: Rou
       observer.disconnect()
       userMarker.current?.remove()
       destinationMarker.current?.remove()
+      markMarkers.current.forEach((marker) => marker.remove())
       map.remove()
       mapRef.current = null
     }
@@ -81,19 +101,34 @@ export function RouteMap({ userLocation, destination, focus, path, onPick }: Rou
     }
     const lngLat: [number, number] = [destination.longitude, destination.latitude]
     if (!destinationMarker.current) {
-      destinationMarker.current = new Marker({ color: '#073049' }).setLngLat(lngLat).addTo(map)
+      destinationMarker.current = new Marker({
+        color: blocked ? '#C5362B' : '#073049',
+      })
+        .setLngLat(lngLat)
+        .addTo(map)
       return
     }
     destinationMarker.current.setLngLat(lngLat)
-  }, [destination])
+  }, [blocked, destination])
 
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    const draw = () => drawPath(map, path)
+    markMarkers.current.forEach((marker) => marker.remove())
+    markMarkers.current = marks.map((mark) =>
+      new Marker({ color: mark.status === 'passa' ? '#1B7A45' : '#C5362B' })
+        .setLngLat([mark.longitude, mark.latitude])
+        .addTo(map),
+    )
+  }, [marks])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const draw = () => drawPath(map, path, blocked)
     if (map.isStyleLoaded()) draw()
     else map.once('load', draw)
-  }, [path])
+  }, [blocked, path])
 
   return (
     <div className="relative h-full min-h-[52vh] w-full">
@@ -107,7 +142,7 @@ export function RouteMap({ userLocation, destination, focus, path, onPick }: Rou
   )
 }
 
-function drawPath(map: Map, path: GeoPoint[]) {
+function drawPath(map: Map, path: GeoPoint[], blocked: boolean) {
   const existing = map.getSource('route')
   if (path.length < 2) {
     if (map.getLayer('route')) map.removeLayer('route')
@@ -126,15 +161,20 @@ function drawPath(map: Map, path: GeoPoint[]) {
     },
   }
 
+  const color = blocked ? '#C5362B' : '#0073B8'
+
   if (existing && existing.type === 'geojson') {
     ;(existing as GeoJSONSource).setData(data)
+    if (map.getLayer('route')) {
+      map.setPaintProperty('route', 'line-color', color)
+    }
   } else {
     map.addSource('route', { type: 'geojson', data })
     map.addLayer({
       id: 'route',
       type: 'line',
       source: 'route',
-      paint: { 'line-color': '#0073B8', 'line-width': 5 },
+      paint: { 'line-color': color, 'line-width': 5 },
     })
   }
 

@@ -10,10 +10,6 @@ export function routingConfigured(): boolean {
   return functionUrl() !== '' || useFixture()
 }
 
-export function hereMapsConfigured(): boolean {
-  return (import.meta.env.VITE_HERE_MAPS_API_KEY ?? '').trim() !== ''
-}
-
 export async function requestTruckRoute(input: {
   origin: GeoPoint
   destination: GeoPoint
@@ -64,11 +60,11 @@ export async function requestTruckRoute(input: {
 }
 
 function useFixture(): boolean {
-  return (import.meta.env.VITE_ROUTE_USE_FIXTURE ?? '').trim() === '1'
+  return (process.env.EXPO_PUBLIC_ROUTE_USE_FIXTURE ?? '').trim() === '1'
 }
 
 function functionUrl(): string {
-  return (import.meta.env.VITE_ROUTE_FUNCTION_URL ?? '').trim()
+  return (process.env.EXPO_PUBLIC_ROUTE_FUNCTION_URL ?? '').trim()
 }
 
 function parseRouteResult(body: unknown): RouteResult {

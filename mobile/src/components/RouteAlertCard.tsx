@@ -1,4 +1,6 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import * as Haptics from 'expo-haptics'
+import { useEffect, useRef } from 'react'
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import {
   ALERT_STATUS_LABEL,
   ALERT_URGENCY_LABEL,
@@ -8,10 +10,12 @@ import {
 import { tokens } from '@rotatrucks/back/tokens'
 import { Button } from '@/components/Button'
 import { Icon } from '@/components/Icon'
+import { pressStyle } from '@/lib/press'
 
 interface RouteAlertCardProps {
   alert: EvaluatedRouteAlert
   busy?: boolean
+  hapticEnabled?: boolean
   onUnderstand: () => void
   onDismiss: () => void
   onConfirmContinues: () => void
@@ -22,6 +26,7 @@ interface RouteAlertCardProps {
 export function RouteAlertCard({
   alert,
   busy = false,
+  hapticEnabled = true,
   onUnderstand,
   onDismiss,
   onConfirmContinues,
@@ -36,8 +41,51 @@ export function RouteAlertCard({
       ? 'Urgência extrema por perto'
       : `Atenção na frente (${formatDistanceLabel(Math.abs(alert.alongMeters))})`
 
+  const enter = useRef(new Animated.Value(0)).current
+  const body = useRef(new Animated.Value(1)).current
+  const phaseReady = useRef(false)
+  const lastHapticId = useRef<string | null>(null)
+
+  useEffect(() => {
+    enter.setValue(0)
+    Animated.timing(enter, { toValue: 1, duration: 200, useNativeDriver: true }).start()
+  }, [alert.source.id, enter])
+
+  useEffect(() => {
+    if (!phaseReady.current) {
+      phaseReady.current = true
+      return
+    }
+    body.setValue(0.4)
+    Animated.timing(body, { toValue: 1, duration: 160, useNativeDriver: true }).start()
+  }, [alert.phase, body])
+
+  useEffect(() => {
+    if (!hapticEnabled || !extreme || confirm) return
+    if (lastHapticId.current === alert.source.id) return
+    lastHapticId.current = alert.source.id
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+  }, [alert.source.id, confirm, extreme, hapticEnabled])
+
   return (
-    <View style={[styles.card, extreme ? styles.cardExtreme : null]} accessibilityLabel={title}>
+    <Animated.View
+      style={[
+        styles.card,
+        extreme ? styles.cardExtreme : null,
+        {
+          opacity: enter,
+          transform: [
+            {
+              translateY: enter.interpolate({
+                inputRange: [0, 1],
+                outputRange: [16, 0],
+              }),
+            },
+          ],
+        },
+      ]}
+      accessibilityLabel={title}
+    >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -65,46 +113,48 @@ export function RouteAlertCard({
             onPress={onDismiss}
             accessibilityRole="button"
             accessibilityLabel="Fechar aviso"
-            hitSlop={12}
-            style={styles.close}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={pressStyle(styles.close, { opacity: 0.7, pressed: styles.closePressed })}
           >
-            <Icon name="close" size={20} color={tokens.color.muted} />
+            <Icon name="close" size={22} color={tokens.color.muted} />
           </Pressable>
         </View>
 
-        <Text style={styles.label}>{alert.source.label}</Text>
-        <Text style={styles.notes}>{alert.source.notes}</Text>
+        <Animated.View style={{ opacity: body }}>
+          <Text style={styles.label}>{alert.source.label}</Text>
+          <Text style={styles.notes}>{alert.source.notes}</Text>
 
-        {confirm ? (
-          <View style={styles.actions}>
-            <Text style={styles.question}>Continua lá o problema?</Text>
-            <Button
-              label="Sim, continua"
-              onPress={onConfirmContinues}
-              loading={busy}
-              disabled={busy}
-            />
-            <Button
-              label="Não, liberou"
-              variant="outline"
-              onPress={onConfirmCleared}
-              disabled={busy}
-            />
-            <Button
-              label="Não sei / Depois"
-              variant="outline"
-              onPress={onConfirmUnknown}
-              disabled={busy}
-            />
-          </View>
-        ) : (
-          <View style={styles.actions}>
-            <Button label="Entendi" onPress={onUnderstand} disabled={busy} />
-            <Button label="Fechar" variant="outline" onPress={onDismiss} disabled={busy} />
-          </View>
-        )}
+          {confirm ? (
+            <View style={styles.actions}>
+              <Text style={styles.question}>Continua lá o problema?</Text>
+              <Button
+                label="Sim, continua"
+                onPress={onConfirmContinues}
+                loading={busy}
+                disabled={busy}
+              />
+              <Button
+                label="Não, liberou"
+                variant="outline"
+                onPress={onConfirmCleared}
+                disabled={busy}
+              />
+              <Button
+                label="Não sei / Depois"
+                variant="outline"
+                onPress={onConfirmUnknown}
+                disabled={busy}
+              />
+            </View>
+          ) : (
+            <View style={styles.actions}>
+              <Button label="Entendi" onPress={onUnderstand} disabled={busy} />
+              <Button label="Fechar" variant="outline" onPress={onDismiss} disabled={busy} />
+            </View>
+          )}
+        </Animated.View>
       </ScrollView>
-    </View>
+    </Animated.View>
   )
 }
 
@@ -163,7 +213,14 @@ const styles = StyleSheet.create({
     color: tokens.color.muted,
   },
   close: {
-    padding: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closePressed: {
+    backgroundColor: tokens.color.fog,
   },
   label: {
     fontFamily: tokens.font.bodyMedium,

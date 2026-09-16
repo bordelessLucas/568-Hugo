@@ -1,4 +1,5 @@
 import { Redirect, Tabs } from 'expo-router'
+import { View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens } from '@rotatrucks/back/tokens'
 import { Icon, type IconName } from '@/components/Icon'
@@ -43,7 +44,7 @@ export default function TabsLayout() {
         options={{
           title: 'Mapa',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={focused ? 'map' : 'map-outline'} color={color} />
+            <TabIcon name={focused ? 'map' : 'map-outline'} color={color} focused={focused} />
           ),
         }}
       />
@@ -52,7 +53,7 @@ export default function TabsLayout() {
         options={{
           title: 'Comunidade',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={focused ? 'people' : 'people-outline'} color={color} />
+            <TabIcon name={focused ? 'people' : 'people-outline'} color={color} focused={focused} />
           ),
         }}
       />
@@ -61,9 +62,19 @@ export default function TabsLayout() {
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={focused ? 'person' : 'person-outline'} color={color} />
+            <TabIcon name={focused ? 'person' : 'person-outline'} color={color} focused={focused} />
           ),
-          tabBarBadge: auth.truckPending ? '!' : undefined,
+          tabBarBadge: auth.truckPending ? 'Falta caminhão' : undefined,
+          tabBarBadgeStyle: auth.truckPending
+            ? {
+                fontSize: 9,
+                fontFamily: tokens.font.label,
+                maxWidth: 120,
+                height: 16,
+                lineHeight: 14,
+                paddingHorizontal: 4,
+              }
+            : undefined,
         }}
       />
       <Tabs.Screen
@@ -71,7 +82,11 @@ export default function TabsLayout() {
         options={{
           title: 'Ajustes',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={focused ? 'settings' : 'settings-outline'} color={color} />
+            <TabIcon
+              name={focused ? 'settings' : 'settings-outline'}
+              color={color}
+              focused={focused}
+            />
           ),
         }}
       />
@@ -79,6 +94,18 @@ export default function TabsLayout() {
   )
 }
 
-function TabIcon({ name, color }: { name: IconName; color: string | { toString(): string } }) {
-  return <Icon name={name} size={24} color={String(color)} />
+function TabIcon({
+  name,
+  color,
+  focused,
+}: {
+  name: IconName
+  color: string | { toString(): string }
+  focused: boolean
+}) {
+  return (
+    <View style={{ opacity: focused ? 1 : 0.72 }}>
+      <Icon name={name} size={24} color={String(color)} />
+    </View>
+  )
 }

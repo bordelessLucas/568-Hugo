@@ -38,6 +38,10 @@ export function LoginScreen() {
   const handleForgotPassword = async () => {
     setError('')
     setResetNotice('')
+    if (!email.trim()) {
+      setError('Informe o e-mail para redefinir a senha.')
+      return
+    }
     try {
       await auth.resetPassword(email)
       setResetNotice('Se o e-mail existir, enviamos o link de redefinição.')

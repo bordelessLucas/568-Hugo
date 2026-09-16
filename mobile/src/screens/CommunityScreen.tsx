@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native'
 import {
   COMMUNITY_STATUS_LABEL,
   createCommunity,
@@ -18,6 +18,7 @@ import { Input } from '@/components/Input'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { useAuth } from '@/contexts/AuthContext'
 import { toUserMessage } from '@/lib/auth-errors'
+import { pressStyle } from '@/lib/press'
 import { useDeviceLocation } from '@/hooks/useDeviceLocation'
 import { useSettings } from '@/contexts/SettingsContext'
 
@@ -80,6 +81,28 @@ export function CommunityScreen() {
     void reloadList()
   }
 
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (mode === 'list') return false
+      if (mode === 'detail') {
+        backToList()
+        return true
+      }
+      if (mode === 'create') {
+        setMode('list')
+        setError('')
+        return true
+      }
+      if (mode === 'edit' || mode === 'cancel') {
+        setMode('detail')
+        setError('')
+        return true
+      }
+      return false
+    })
+    return () => sub.remove()
+  }, [mode])
+
   return (
     <Container edges={['top']}>
       <View style={styles.stack}>
@@ -107,7 +130,10 @@ export function CommunityScreen() {
                   setNotice('')
                   void openDetail(item)
                 }}
-                style={styles.listCard}
+                style={pressStyle(styles.listCard, {
+                  opacity: 0.92,
+                  pressed: styles.listCardPressed,
+                })}
               >
                 <View style={styles.cardIcon}>
                   <Icon
@@ -230,7 +256,7 @@ export function CommunityScreen() {
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Button
               label="Voltar"
-              variant="secondary"
+              variant="outline"
               disabled={saving}
               onPress={() => {
                 setError('')
@@ -239,7 +265,7 @@ export function CommunityScreen() {
             />
             <Button
               label="Sim, cancelar pedido"
-              variant="outline"
+              variant="danger"
               loading={saving}
               onPress={() => {
                 if (!auth.session) return
@@ -443,6 +469,9 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.color.surface,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  listCardPressed: {
+    backgroundColor: tokens.color.fog,
   },
   cardIcon: {
     width: 40,
