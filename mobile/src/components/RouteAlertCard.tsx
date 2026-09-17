@@ -5,6 +5,7 @@ import {
   ALERT_STATUS_LABEL,
   ALERT_URGENCY_LABEL,
   formatDistanceLabel,
+  REPORT_CATEGORY_OPTIONS,
   type EvaluatedRouteAlert,
 } from '@rotatrucks/back'
 import { tokens } from '@rotatrucks/back/tokens'
@@ -104,6 +105,8 @@ export function RouteAlertCard({
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.meta}>
               {ALERT_URGENCY_LABEL[alert.source.urgency]}
+              {' · '}
+              {REPORT_CATEGORY_OPTIONS[alert.source.category].label}
               {' · '}
               {ALERT_STATUS_LABEL[alert.source.status]}
               {alert.priority === 'low' ? ' · Baixa prioridade' : ''}

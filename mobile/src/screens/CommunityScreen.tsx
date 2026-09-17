@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native'
 import {
+  REPORT_CATEGORY_OPTIONS,
   COMMUNITY_STATUS_LABEL,
   createCommunity,
   deletePendingCommunity,
@@ -344,6 +345,7 @@ function DetailView({
             />
             <View style={styles.cardCopy}>
               <Text style={styles.title}>{item.label}</Text>
+              <Text style={styles.category}>{REPORT_CATEGORY_OPTIONS[item.category].label}</Text>
               <Text style={styles.muted}>{item.notes}</Text>
             </View>
           </View>
@@ -489,6 +491,11 @@ const styles = StyleSheet.create({
     fontFamily: tokens.font.label,
     fontSize: tokens.size.label,
     color: tokens.color.ink,
+  },
+  category: {
+    fontFamily: tokens.font.label,
+    fontSize: 11,
+    color: tokens.color.brand,
   },
   muted: {
     fontFamily: tokens.font.body,
