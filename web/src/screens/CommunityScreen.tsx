@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
+  REPORT_CATEGORY_OPTIONS,
   COMMUNITY_STATUS_LABEL,
   createCommunity,
   deletePendingCommunity,
@@ -331,6 +332,9 @@ function DetailView({
                 </span>
                 {' · '}
                 {item.label}
+              </p>
+              <p className="mt-1 font-body text-xs font-bold text-brand">
+                {REPORT_CATEGORY_OPTIONS[item.category].label}
               </p>
               <p className="mt-1 font-body text-sm text-muted">{item.notes}</p>
             </li>

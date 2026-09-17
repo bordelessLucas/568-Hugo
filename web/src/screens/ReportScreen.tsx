@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  REPORT_CATEGORIES,
+  REPORT_CATEGORY_OPTIONS,
   REPORT_STATUSES,
   TRUCK_TYPE_OPTIONS,
   TRUCK_TYPES,
   createReport,
+  reportCategoryRequiresNotes,
+  type ReportCategory,
   type ReportStatus,
   type TruckType,
 } from '@rotatrucks/back'
@@ -26,9 +30,11 @@ export function ReportScreen() {
   const settings = useSettings()
   const navigate = useNavigate()
   const location = useDeviceLocation(settings.shareLocation)
+  const [category, setCategory] = useState<ReportCategory>('route_condition')
   const [truckType, setTruckType] = useState<TruckType | null>(auth.truck?.type ?? null)
   const [status, setStatus] = useState<ReportStatus | null>(null)
   const [notes, setNotes] = useState('')
+  const [extreme, setExtreme] = useState(false)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
@@ -47,16 +53,21 @@ export function ReportScreen() {
       setError('Permita a localização para gravar o ponto.')
       return
     }
+    if ((reportCategoryRequiresNotes(category) || extreme) && notes.trim().length < 8) {
+      setError('Descreva o que aconteceu com pelo menos 8 caracteres.')
+      return
+    }
     setSaving(true)
     try {
       await createReport({
         authorId: auth.session.uid,
         truckType,
+        category,
         status,
         notes: notes.trim(),
         latitude: location.point.latitude,
         longitude: location.point.longitude,
-        urgency: 'normal',
+        urgency: extreme ? 'extreme' : 'normal',
       })
       setDone(true)
     } catch (caught) {
@@ -89,6 +100,21 @@ export function ReportScreen() {
               </div>
 
               <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface px-5 py-5">
+                <Caption>O que aconteceu?</Caption>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {REPORT_CATEGORIES.map((value) => (
+                    <Choice
+                      key={value}
+                      label={REPORT_CATEGORY_OPTIONS[value].label}
+                      hint={REPORT_CATEGORY_OPTIONS[value].description}
+                      selected={category === value}
+                      onSelect={() => setCategory(value)}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface px-5 py-5">
                 <Caption>Tipo de caminhão</Caption>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {TRUCK_TYPES.map((value) => (
@@ -103,7 +129,7 @@ export function ReportScreen() {
               </section>
 
               <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface px-5 py-5">
-                <Caption>Situação</Caption>
+                <Caption>Dá para seguir com o caminhão?</Caption>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {REPORT_STATUSES.map((value) => (
                     <Choice
@@ -123,10 +149,24 @@ export function ReportScreen() {
                   onChange={(event) => setNotes(event.target.value)}
                   maxLength={500}
                   rows={4}
-                  placeholder="Opcional"
+                  placeholder={
+                    reportCategoryRequiresNotes(category) || extreme
+                      ? 'Descreva o risco em pelo menos 8 caracteres'
+                      : 'Opcional'
+                  }
                   className="rounded-xl border border-line bg-surface px-4 py-3 font-body text-sm text-ink outline-none focus:border-brand"
                 />
               </label>
+
+              <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface px-5 py-5">
+                <Caption>Prioridade do aviso</Caption>
+                <Choice
+                  label="Urgência extrema"
+                  hint="Só para risco imediato. Pode aparecer para quem está perto, mesmo sem destino. Não substitui polícia ou atendimento de emergência."
+                  selected={extreme}
+                  onSelect={() => setExtreme((value) => !value)}
+                />
+              </section>
 
               <p className="font-body text-[13px] text-muted">
                 {location.status === 'ready'
@@ -158,10 +198,12 @@ export function ReportScreen() {
 
 function Choice({
   label,
+  hint,
   selected,
   onSelect,
 }: {
   label: string
+  hint?: string
   selected: boolean
   onSelect: () => void
 }) {
@@ -175,7 +217,8 @@ function Choice({
         selected ? 'border-brand bg-fog text-ink' : 'border-line text-ink hover:bg-fog',
       ].join(' ')}
     >
-      {label}
+      <span className="block">{label}</span>
+      {hint ? <span className="mt-1 block text-[13px] font-normal text-muted">{hint}</span> : null}
     </button>
   )
 }

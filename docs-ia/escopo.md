@@ -14,11 +14,12 @@ O que o produto resolve: saber se a via passa ou nao passa para o tipo e o taman
 - Mobile: tela de reportar ocorrencia (passa / nao passa) gravando no Firestore
 - Comunidade: lista, detalhe/feed, pedir/editar/cancelar pedido pendente (ver docs-ia/comunidades.md)
 - Mobile: avisos na rota estilo Waze + Continua la? (ver docs-ia/avisos-rota.md)
+- Web e mobile: ocorrencias estruturadas por categoria (condicao da via, acidente, bloqueio, risco de roubo e local inseguro)
 - Casca HERE sem chave: fixtures, client de rota web/mobile, RouteMap no web, path no MockMap, avisos com polyline, pins filtrados, checklist (ver docs-ia/here-checklist.md)
 
 ## Decidir juntos (PDFs / sprint)
 
-- Seed piloto Barra Velha / SC (viaduto 4,5 m, SC-401) - seed ja existe no back
+- Dados oficiais do piloto: validar coordenadas, vigencia e fonte antes de publicar (os exemplos de viaduto 4,5 m e SC-401 nao pertencem a Barra Velha)
 
 ## Fora ate chave / decisao de produto
 
