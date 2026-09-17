@@ -22,4 +22,12 @@ Uma restrição verificada exige órgão, URL HTTPS e data de verificação. Reg
 - Não há recálculo automático de rota.
 - Avaliações são apenas um resumo curado; usuários ainda não publicam avaliações.
 - Pontos seguros não são garantia de segurança. As condições podem mudar e devem ser confirmadas antes da parada.
-- Os seeds são fictícios, começam com “Demonstração” e não representam estabelecimentos reais.
+- Os seeds são fictícios e usam nomes naturais para testar o fluxo. Nos detalhes, sempre aparecem como “Dado simulado para teste” e não representam estabelecimentos reais.
+
+## Experiência ampliada
+
+- Busca por nome ou endereço.
+- Filtros de segurança, chuveiro, alimentação e pernoite.
+- Ordenação por distância, nota ou quantidade de estrutura.
+- Detalhes expansíveis com endereço, horário, origem do dado e alerta para confirmar as condições.
+- Quando o modo seguro feminino está ativo, a lista prioriza somente pontos recomendados para caminhoneiras sem publicar essa preferência.

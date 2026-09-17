@@ -75,3 +75,13 @@ Registros antigos sem categoria continuam sendo lidos como condição da via. Ca
 
 - Com `path` (HERE ou fixture): corredor ao longo da polyline
 - Sem `path`: reta origem → destino (comportamento anterior)
+
+## SOS local implementado
+
+- Botão fixo no canto inferior esquerdo do mapa, separado das advertências de rota.
+- Primeiro toque abre uma confirmação clara; o segundo confirma o SOS.
+- O protocolo registra localmente horário, usuário, caminhão e localização disponível.
+- A tela oferece ligação para a PRF pelo número 191, preparação de SMS para até três contatos e encerramento do protocolo.
+- O texto diferencia “SMS preparado no celular” de mensagem realmente entregue.
+- Sem Firebase Blaze e remetente de SMS, não há envio automático, atualização contínua de localização, link temporário ou confirmação de recebimento.
+- Credenciais de Twilio/Zenvia nunca devem ficar no aplicativo; a futura integração pertence ao backend.

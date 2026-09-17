@@ -89,7 +89,7 @@ O selo “Ponto Amigo da Caminhoneira” exige registro curado e verificado, aud
 
 Foram removidos os seeds que atribuíam incorretamente a Barra Velha uma restrição da SC-401, localizada em Florianópolis, e um viaduto de 4,5 m cuja fonte localizada do DNIT aponta para a região de Tubarão.
 
-Os novos seeds são fictícios, começam com “Demonstração” e não usam nomes de estabelecimentos reais ou órgãos públicos. Nenhum dado é apresentado como oficial sem fonte primária conferida.
+Os novos seeds são fictícios, usam nomes naturais e mostram “Dado simulado para teste” nos detalhes. Nenhum dado é apresentado como oficial sem fonte primária conferida.
 
 ## Correções do code review
 
@@ -123,15 +123,25 @@ O build web mantém apenas o aviso de bundle superior a 500 kB. O lint web possu
 - `docs-ia/escopo.md`
 - `docs-ia/here-checklist.md`
 
+## Experiência de segurança adicionada
+
+- Advertências do mapa resumidas em comandos grandes e operacionais, com detalhes recolhidos.
+- SOS no canto inferior esquerdo, confirmação em dois toques e orientação de uso responsável.
+- Registro local de protocolo, horário, usuário, caminhão e GPS disponível.
+- Ligação PRF 191 e SMS preparado para até três contatos de confiança.
+- Pontos seguros com pesquisa, filtros, ordenação e detalhes.
+- Comparação clara dos planos Gratuito, Premium e Frotas.
+- Preferência feminina privada, filtro de pontos recomendados e interfaces para pânico silencioso, denúncia anônima e comunidade.
+
 ## Funcionalidades ainda pendentes dos PDFs
 
 - Ingestão automática de DNIT, DER, PRF, prefeituras e diários oficiais.
 - Painel administrativo de curadoria e moderação.
 - Redirecionamento automático de rota.
 - Avaliações públicas com antifraude e moderação.
-- Modo seguro feminino completo e comunidade de caminhoneiras.
+- Backend e moderação do modo feminino e comunidade de caminhoneiras.
 - Histórico e estatísticas de segurança por rota.
-- SOS, contatos de emergência e pânico silencioso.
+- Envio automático do SOS, push, rastreamento temporário, link seguro e confirmação de recebimento (exigem Blaze e provedor configurado).
 - KYC e antifraude de frete.
 - Premium, anúncios, marketplace, pagamentos e white label.
 
@@ -139,7 +149,6 @@ Ordem recomendada: avaliações moderadas, modo seguro feminino, histórico de s
 
 ## Estado da entrega
 
-- Branch: `feat/incidentes-seguranca`
-- Worktree: `C:\borderless\projetos\568-Hugo\.worktrees\incidentes-seguranca`
-- A branch ainda não foi mesclada na `main`.
-- As alterações preexistentes em `mobile/App.tsx` e `.cursor/` na árvore principal não foram modificadas.
+- Implementação continuada na branch atual autorizada pelo cliente.
+- O transporte automático de SMS/push permanece desligado até a ativação do Firebase Blaze e a configuração segura de um remetente no backend.
+- Nenhuma credencial Twilio foi incluída no cliente ou no repositório.

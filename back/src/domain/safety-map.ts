@@ -3,7 +3,7 @@ import { hasWomenFriendlySeal, type SafePlace, type SafePlaceService } from './s
 import type { Truck } from './truck'
 
 export interface SafetyMapMark { id: string; kind: 'restriction' | 'safe_place'; latitude: number; longitude: number; title: string; badge: string; tone: 'danger' | 'warning' | 'safe' | 'neutral'; details: string[]; sourceLabel: string }
-export const SAFETY_SOURCE_LABELS = { verified: 'Fonte verificada', demo: 'Demonstração', expired: 'Fonte expirada', curated: 'Cadastro curado' } as const
+export const SAFETY_SOURCE_LABELS = { verified: 'Fonte verificada', demo: 'Dado simulado para teste', expired: 'Fonte expirada', curated: 'Cadastro curado' } as const
 const serviceLabels: Record<SafePlaceService, string> = { truck_parking: 'Estacionamento para caminhão', lighting: 'Iluminação', security: 'Vigilância', restroom: 'Banheiro', shower: 'Chuveiro', food: 'Alimentação', repair: 'Oficina', overnight: 'Pernoite' }
 
 export function buildRestrictionMark(item: OfficialRestriction, truck: Truck | null, at: Date): SafetyMapMark {
@@ -18,5 +18,5 @@ export function formatSafePlaceServices(place: SafePlace): string { return place
 export function buildSafePlaceMark(place: SafePlace): SafetyMapMark {
   const details = [formatSafePlaceServices(place), `Nota ${place.ratingAverage.toFixed(1)} (${place.ratingCount} avaliações)`]
   if (hasWomenFriendlySeal(place)) details.push('Ponto Amigo da Caminhoneira')
-  return { id: `safe:${place.id}`, kind: 'safe_place', latitude: place.latitude, longitude: place.longitude, title: place.name, badge: 'Ponto seguro', tone: 'safe', details, sourceLabel: place.origin === 'demo' ? 'Demonstração' : 'Cadastro curado' }
+  return { id: `safe:${place.id}`, kind: 'safe_place', latitude: place.latitude, longitude: place.longitude, title: place.name, badge: 'Ponto seguro', tone: 'safe', details, sourceLabel: place.origin === 'demo' ? SAFETY_SOURCE_LABELS.demo : SAFETY_SOURCE_LABELS.curated }
 }

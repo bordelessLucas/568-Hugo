@@ -121,6 +121,11 @@ export function ProfileScreen() {
               }}
             />
             <Button
+              label="Contatos de confiança"
+              variant="secondary"
+              onPress={() => router.push('/contatos-confianca')}
+            />
+            <Button
               label="Sair"
               variant="outline"
               onPress={() => {

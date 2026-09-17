@@ -17,6 +17,8 @@ export interface SafePlace {
   ratingAverage: number
   ratingCount: number
 }
+export interface SafePlaceFilter { query: string; services: SafePlaceService[]; womenRecommended: boolean }
+export type SafePlaceSort = 'distance' | 'rating' | 'structure'
 
 const serviceSet: ReadonlySet<string> = new Set(SAFE_PLACE_SERVICES)
 const sealServices: SafePlaceService[] = ['restroom', 'shower', 'lighting', 'security']
@@ -38,4 +40,19 @@ export function hasWomenFriendlySeal(place: SafePlace): boolean {
 export function sortSafePlacesByDistance(places: SafePlace[], origin: GeoPoint | null): SafePlace[] {
   if (!origin) return [...places]
   return [...places].sort((a, b) => haversineMeters(origin, a) - haversineMeters(origin, b))
+}
+
+export function filterSafePlaces(places: SafePlace[], filter: SafePlaceFilter): SafePlace[] {
+  const query = filter.query.trim().toLocaleLowerCase('pt-BR')
+  return places.filter((place) => {
+    if (query && !`${place.name} ${place.address ?? ''}`.toLocaleLowerCase('pt-BR').includes(query)) return false
+    if (filter.womenRecommended && place.audience !== 'women_recommended') return false
+    return filter.services.every((service) => place.services.includes(service))
+  })
+}
+
+export function rankSafePlaces(places: SafePlace[], origin: GeoPoint | null, sort: SafePlaceSort): SafePlace[] {
+  if (sort === 'distance') return sortSafePlacesByDistance(places, origin)
+  if (sort === 'rating') return [...places].sort((a, b) => b.ratingAverage - a.ratingAverage)
+  return [...places].sort((a, b) => b.services.length - a.services.length)
 }

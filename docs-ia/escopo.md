@@ -15,6 +15,10 @@ O que o produto resolve: saber se a via passa ou nao passa para o tipo e o taman
 - Comunidade: lista, detalhe/feed, pedir/editar/cancelar pedido pendente (ver docs-ia/comunidades.md)
 - Mobile: avisos na rota estilo Waze + Continua la? (ver docs-ia/avisos-rota.md)
 - Restrições curadas por caminhão e pontos seguros demonstrativos no mapa e em lista (ver docs-ia/restricoes-pontos-seguros.md)
+- SOS local em dois passos, protocolo no aparelho, ligação 191, até três contatos e SMS preparado pelo sistema do celular
+- Pontos seguros com busca, filtros, ordenação e detalhes
+- Comparação dos planos Gratuito, Premium e Frotas, sem cobrança ativa
+- Preferência privada de modo seguro feminino e interfaces previstas para pânico silencioso, denúncia anônima e comunidade
 - Web e mobile: ocorrencias estruturadas por categoria (condicao da via, acidente, bloqueio, risco de roubo e local inseguro)
 - Casca HERE sem chave: fixtures, client de rota web/mobile, RouteMap no web, path no MockMap, avisos com polyline, pins filtrados, checklist (ver docs-ia/here-checklist.md)
 
@@ -25,7 +29,7 @@ O que o produto resolve: saber se a via passa ou nao passa para o tipo e o taman
 ## Fora ate chave / decisao de produto
 
 - Ligar secret HERE_API_KEY + URL da function (amanha)
-- SOS, modo seguro, pontos seguros
+- Envio automático de SOS, rastreamento temporário e link seguro (dependem de Firebase Blaze e provedor SMS)
 - Cobranca Premium / AdMob
 - Ingestao automatica DNIT / DER
 - Painel admin de aprovacao de comunidades (hoje: Console Firebase)

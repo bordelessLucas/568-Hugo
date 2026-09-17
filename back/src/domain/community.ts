@@ -61,7 +61,7 @@ export const PILOT_MARKS: PilotMark[] = [
     notes: 'Urgência extrema de exemplo do piloto. Aparece mesmo sem destino se você estiver perto.',
     latitude: -26.6332,
     longitude: -48.687,
-    source: 'Demonstração RotaTrucks — dado simulado',
+    source: 'RotaTrucks — dado simulado para teste',
     urgency: 'extreme',
   },
   {

@@ -5,7 +5,7 @@ import { buildRestrictionMark, buildSafePlaceMark, formatSafePlaceServices } fro
 
 test('mapa identifica fonte demonstrativa', () => {
   const mark = buildRestrictionMark(DEMO_OFFICIAL_RESTRICTIONS[0]!, null, new Date())
-  assert.equal(mark.sourceLabel, 'Demonstração')
+  assert.equal(mark.sourceLabel, 'Dado simulado para teste')
   assert.equal(mark.tone, 'neutral')
 })
 

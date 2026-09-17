@@ -15,6 +15,7 @@ interface SettingsContextValue extends AppSettings {
   setSounds: (enabled: boolean) => void
   setShareLocation: (enabled: boolean) => void
   setSignReports: (enabled: boolean) => void
+  setWomenSafeMode: (enabled: boolean) => void
 }
 
 const SettingsContext = createContext<SettingsContextValue | null>(null)
@@ -56,6 +57,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       setSounds: (sounds) => update({ ...settings, sounds }),
       setShareLocation: (shareLocation) => update({ ...settings, shareLocation }),
       setSignReports: (signReports) => update({ ...settings, signReports }),
+      setWomenSafeMode: (womenSafeMode) => update({ ...settings, womenSafeMode }),
     }),
     [settings],
   )

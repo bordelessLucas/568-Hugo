@@ -1,5 +1,5 @@
 export type ThemeMode = 'light' | 'dark'
-export type PlanModel = 'gratuito' | 'premium'
+export type PlanModel = 'gratuito' | 'premium' | 'frotas'
 
 export interface AppSettings {
   theme: ThemeMode
@@ -8,6 +8,7 @@ export interface AppSettings {
   sounds: boolean
   shareLocation: boolean
   signReports: boolean
+  womenSafeMode: boolean
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   sounds: true,
   shareLocation: true,
   signReports: true,
+  womenSafeMode: false,
 }
 
 const KEY = 'rotatrucks-settings'
@@ -30,11 +32,12 @@ export function readSettings(): AppSettings {
     const record = parsed as Record<string, unknown>
     return {
       theme: record.theme === 'dark' ? 'dark' : 'light',
-      plan: record.plan === 'premium' ? 'premium' : 'gratuito',
+      plan: record.plan === 'premium' || record.plan === 'frotas' ? record.plan : 'gratuito',
       notifications: record.notifications === true,
       sounds: record.sounds !== false,
       shareLocation: record.shareLocation !== false,
       signReports: record.signReports !== false,
+      womenSafeMode: record.womenSafeMode === true,
     }
   } catch {
     return DEFAULT_SETTINGS

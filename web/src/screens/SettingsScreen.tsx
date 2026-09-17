@@ -19,18 +19,24 @@ export function SettingsScreen() {
           </div>
 
           <Section title="Assinatura" caption="A cobrança não entra nesta versão. A escolha fica salva neste aparelho.">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <PlanCard
                 label="Gratuito"
-                hint="Mapa, caminhão e marcações da comunidade."
+                hint="Mapa, avisos críticos, SOS e pontos seguros."
                 selected={settings.plan === 'gratuito'}
                 onSelect={() => settings.setPlan('gratuito')}
               />
               <PlanCard
                 label="Premium"
-                hint="Modelo sem anúncio, quando a assinatura existir."
+                hint="Sem anúncios e recursos avançados planejados. Cobrança ainda não ativa."
                 selected={settings.plan === 'premium'}
                 onSelect={() => settings.setPlan('premium')}
+              />
+              <PlanCard
+                label="Frotas"
+                hint="Veículos, motoristas e relatórios empresariais planejados."
+                selected={settings.plan === 'frotas'}
+                onSelect={() => settings.setPlan('frotas')}
               />
             </div>
           </Section>
@@ -83,7 +89,19 @@ export function SettingsScreen() {
               checked={settings.signReports}
               onChange={settings.setSignReports}
             />
+            <Toggle
+              label="Modo seguro feminino"
+              hint="Prioriza pontos recomendados. Esta preferência fica privada neste navegador."
+              checked={settings.womenSafeMode}
+              onChange={settings.setWomenSafeMode}
+            />
           </Section>
+
+          {settings.womenSafeMode ? <Section title="Proteção para caminhoneiras" caption="Fluxos previstos no projeto; integrações automáticas dependem do backend de produção.">
+            <p className="font-body text-sm text-ink"><strong>Pânico silencioso:</strong> usa o protocolo SOS sem exposição pública.</p>
+            <p className="font-body text-sm text-ink"><strong>Denúncia anônima:</strong> preserva o nome da motorista.</p>
+            <p className="font-body text-sm text-ink"><strong>Comunidade:</strong> espaço privado planejado para caminhoneiras.</p>
+          </Section> : null}
         </div>
       </div>
     </AppFrame>

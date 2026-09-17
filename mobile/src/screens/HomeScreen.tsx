@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import {
@@ -11,12 +11,17 @@ import {
   listSafePlaces,
   buildRestrictionMark,
   buildSafePlaceMark,
+  createEmergencyProtocol,
+  haversineMeters,
+  pickSafetyGuidance,
   ROUTE_STATUS_LABEL,
   TRUCK_TYPE_OPTIONS,
   type RouteResult,
   type OfficialRestriction,
   type SafePlace,
   type SafetyMapMark,
+  type EmergencyProtocol,
+  type TrustedContact,
 } from '@rotatrucks/back'
 import { tokens } from '@rotatrucks/back/tokens'
 import { IconChip, IconFab } from '@/components/IconFab'
@@ -25,6 +30,9 @@ import { MockMap } from '@/components/MockMap'
 import { PlaceSearch } from '@/components/PlaceSearch'
 import { RouteAlertCard } from '@/components/RouteAlertCard'
 import { SetupNotice } from '@/components/SetupNotice'
+import { SosButton } from '@/components/SosButton'
+import { SosConfirmation } from '@/components/SosConfirmation'
+import { SafetyGuidanceCard } from '@/components/SafetyGuidanceCard'
 import { Icon } from '@/components/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSettings } from '@/contexts/SettingsContext'
@@ -34,6 +42,7 @@ import { hasSeenMapLegend, markMapLegendSeen } from '@/lib/map-onboarding'
 import type { PlaceHit } from '@/lib/places'
 import { pressStyle } from '@/lib/press'
 import { requestTruckRoute } from '@/lib/routing'
+import { callPrf, loadActiveEmergencyProtocol, loadTrustedContacts, prepareEmergencySms, saveEmergencyProtocol } from '@/lib/emergency'
 
 const FAB_GAP = 20
 
@@ -41,6 +50,7 @@ export function HomeScreen() {
   const auth = useAuth()
   const settings = useSettings()
   const router = useRouter()
+  const params = useLocalSearchParams<{ sos?: string }>()
   const insets = useSafeAreaInsets()
   const location = useDeviceLocation(settings.shareLocation)
   const [destination, setDestination] = useState<PlaceHit | null>(null)
@@ -51,6 +61,11 @@ export function HomeScreen() {
   const [restrictions, setRestrictions] = useState<OfficialRestriction[]>([])
   const [safePlaces, setSafePlaces] = useState<SafePlace[]>([])
   const [selectedSafetyMark, setSelectedSafetyMark] = useState<SafetyMapMark | null>(null)
+  const [sosOpen, setSosOpen] = useState(false)
+  const [sosProtocol, setSosProtocol] = useState<EmergencyProtocol | null>(null)
+  const [trustedContacts, setTrustedContacts] = useState<TrustedContact[]>([])
+  const [sosMessage, setSosMessage] = useState('')
+  const [dismissedAutomaticMarkId, setDismissedAutomaticMarkId] = useState('')
   const truck = auth.truck
   const path = result?.status === 'compatible' ? result.path : []
   const tags = routeTags(truck, result)
@@ -69,8 +84,44 @@ export function HomeScreen() {
     return filterMapMarksForTruck(pilot, truck?.type ?? null)
   }, [truck?.type])
   const safetyMarks = useMemo(() => [...restrictions.map((item) => buildRestrictionMark(item, truck, new Date())), ...safePlaces.map(buildSafePlaceMark)], [restrictions, safePlaces, truck])
+  const automaticSafetyMark = useMemo(() => {
+    if (!location.point || path.length === 0) return null
+    const nearby = safetyMarks.map((mark) => ({ mark, distanceMeters: haversineMeters(location.point!, mark), command: mark.kind === 'safe_place' ? ('SAFE_STOP' as const) : mark.tone === 'danger' ? ('STOP' as const) : mark.tone === 'warning' ? ('SLOW_DOWN' as const) : ('RISK_AHEAD' as const) })).filter((item) => item.distanceMeters <= 2000)
+    const picked = pickSafetyGuidance(nearby.map((item) => ({ id: item.mark.id, command: item.command, distanceMeters: item.distanceMeters, title: item.mark.title, reason: item.mark.badge, details: item.mark.details })))
+    return picked ? nearby.find((item) => item.mark.id === picked.id)?.mark ?? null : null
+  }, [location.point, path.length, safetyMarks])
 
   useEffect(() => { void Promise.all([listOfficialRestrictions(), listSafePlaces()]).then(([nextRestrictions, nextPlaces]) => { setRestrictions(nextRestrictions); setSafePlaces(nextPlaces) }) }, [])
+  const emergencyUserId = auth.session?.uid ?? 'local-user'
+  useEffect(() => { void loadTrustedContacts(emergencyUserId).then(setTrustedContacts) }, [sosOpen, emergencyUserId])
+  useEffect(() => { void loadActiveEmergencyProtocol(emergencyUserId).then(setSosProtocol) }, [emergencyUserId])
+  useEffect(() => { if (params.sos === 'silent') setSosOpen(true) }, [params.sos])
+
+  const recordChannel = (result: EmergencyProtocol['channels'][number], message: string) => {
+    if (!sosProtocol) return
+    const next = { ...sosProtocol, channels: [...sosProtocol.channels.filter((item) => item.kind !== result.kind), result] }
+    setSosProtocol(next)
+    setSosMessage(message)
+    void saveEmergencyProtocol(next).catch(() => setSosMessage(`${message} Não foi possível atualizar o histórico local.`))
+  }
+
+  const confirmSos = () => {
+    const protocol = createEmergencyProtocol({
+      userId: emergencyUserId,
+      truckId: truck?.id ?? null,
+      location: location.point,
+    })
+    setSosProtocol(protocol)
+    setSosMessage('SOS registrado neste aparelho.')
+    void saveEmergencyProtocol(protocol).catch(() => setSosMessage('SOS aberto, mas não foi possível salvar o protocolo neste aparelho.'))
+  }
+
+  const closeSos = () => {
+    if (sosProtocol) void saveEmergencyProtocol({ ...sosProtocol, status: 'closed' }).catch(() => undefined)
+    setSosProtocol(null)
+    setSosMessage('')
+    setSosOpen(false)
+  }
 
   const routeAlerts = useRouteAlerts({
     enabled: Boolean(auth.session) && location.status === 'ready',
@@ -226,6 +277,10 @@ export function HomeScreen() {
           ) : null}
         </View>
 
+        <View style={[styles.sosDock, { bottom: FAB_GAP, left: sidePad }]} pointerEvents="box-none">
+          <SosButton active={Boolean(sosProtocol)} onPress={() => setSosOpen(true)} />
+        </View>
+
         {routeAlerts.alert ? (
           <View
             style={[
@@ -270,12 +325,7 @@ export function HomeScreen() {
             <Text style={styles.alertError}>{routeAlerts.error}</Text>
           </View>
         ) : null}
-        {selectedSafetyMark ? <View style={[styles.safetyCard, { left: sidePad, right: sidePad }]}>
-          <View style={styles.safetyCardHeader}><Text style={styles.safetyCardTitle}>{selectedSafetyMark.title}</Text><Pressable accessibilityRole="button" accessibilityLabel="Fechar detalhes" onPress={() => setSelectedSafetyMark(null)}><Text style={styles.safetyClose}>Fechar</Text></Pressable></View>
-          <Text style={styles.safetyBadge}>{selectedSafetyMark.badge} · {selectedSafetyMark.sourceLabel}</Text>
-          {selectedSafetyMark.details.map((detail) => <Text key={detail} style={styles.safetyDetail}>{detail}</Text>)}
-          {selectedSafetyMark.kind === 'safe_place' ? <Text style={styles.safetyWarning}>As condições podem mudar. Confirme antes de parar.</Text> : null}
-        </View> : null}
+        {selectedSafetyMark || (!routeAlerts.alert && automaticSafetyMark && automaticSafetyMark.id !== dismissedAutomaticMarkId) ? <View style={[styles.safetyCard, { left: sidePad, right: sidePad }]}><SafetyGuidanceCard mark={selectedSafetyMark ?? automaticSafetyMark!} onClose={() => { if (selectedSafetyMark) setSelectedSafetyMark(null); else if (automaticSafetyMark) setDismissedAutomaticMarkId(automaticSafetyMark.id) }} /></View> : null}
 
         <View
           style={[
@@ -298,6 +348,17 @@ export function HomeScreen() {
       </View>
 
       <MapLegendTutorial visible={tutorialOpen} onConfirm={confirmTutorial} />
+      <SosConfirmation
+        visible={sosOpen}
+        protocol={sosProtocol}
+        contacts={trustedContacts}
+        message={sosMessage}
+        onCancel={() => setSosOpen(false)}
+        onConfirm={confirmSos}
+        onCallPrf={() => { void callPrf().then((result) => recordChannel(result, result.state === 'handed_to_os' ? 'Ligação entregue ao aplicativo do telefone.' : 'Este aparelho não conseguiu abrir a ligação.')) }}
+        onAlertContacts={() => { if (sosProtocol) void prepareEmergencySms(trustedContacts, sosProtocol).then((result) => recordChannel(result, result.state === 'handed_to_os' ? 'SMS preparado no celular. Revise e confirme o envio.' : 'SMS indisponível neste aparelho.')) }}
+        onCloseProtocol={closeSos}
+      />
     </View>
   )
 }
@@ -444,6 +505,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 3,
   },
+  sosDock: {
+    position: 'absolute',
+    zIndex: 6,
+  },
   alertDock: {
     position: 'absolute',
     zIndex: 4,
@@ -458,11 +523,5 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.field,
     marginTop: tokens.space[2],
   },
-  safetyCard: { position: 'absolute', bottom: 96, zIndex: 5, gap: 6, padding: 14, borderRadius: 16, backgroundColor: tokens.color.surface, borderWidth: 1, borderColor: tokens.color.line },
-  safetyCardHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  safetyCardTitle: { flex: 1, fontFamily: tokens.font.label, fontSize: 16, color: tokens.color.ink },
-  safetyClose: { fontFamily: tokens.font.label, color: tokens.color.brand },
-  safetyBadge: { fontFamily: tokens.font.label, fontSize: 12, color: tokens.color.muted },
-  safetyDetail: { fontFamily: tokens.font.body, fontSize: 13, color: tokens.color.ink },
-  safetyWarning: { fontFamily: tokens.font.body, fontSize: 12, color: tokens.color.muted },
+  safetyCard: { position: 'absolute', bottom: 96, zIndex: 5 },
 })
