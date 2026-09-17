@@ -1,4 +1,5 @@
-import { DEMO_SAFE_PLACES, formatSafePlaceServices, hasWomenFriendlySeal, sortSafePlacesByDistance } from '@rotatrucks/back'
+import { listSafePlaces, formatSafePlaceServices, hasWomenFriendlySeal, sortSafePlacesByDistance, type SafePlace } from '@rotatrucks/back'
+import { useEffect, useState } from 'react'
 import { tokens } from '@rotatrucks/back/tokens'
 import { StyleSheet, Text, View } from 'react-native'
 import { Container } from '@/components/Container'
@@ -9,10 +10,15 @@ import { useDeviceLocation } from '@/hooks/useDeviceLocation'
 export function SafePlacesScreen() {
   const settings = useSettings()
   const location = useDeviceLocation(settings.shareLocation)
-  const places = sortSafePlacesByDistance(DEMO_SAFE_PLACES, location.point)
+  const [items, setItems] = useState<SafePlace[]>([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => { void listSafePlaces().then(setItems).finally(() => setLoading(false)) }, [])
+  const places = sortSafePlacesByDistance(items, location.point)
   return <Container edges={['top']}>
     <View style={styles.header}><Heading>Pontos seguros</Heading><Body>Paradas com estrutura cadastrada. Confirme as condições antes de parar.</Body></View>
     {location.status !== 'ready' ? <Caption>Distância indisponível; exibindo a ordem cadastrada.</Caption> : null}
+    {loading ? <Caption>Carregando pontos seguros…</Caption> : null}
+    {!loading && places.length === 0 ? <Caption>Nenhum ponto seguro cadastrado.</Caption> : null}
     {places.map((place) => <View key={place.id} style={styles.card}>
       <Text style={styles.title}>{place.name}</Text>
       <Text style={styles.badge}>{place.origin === 'demo' ? 'Demonstração' : 'Informação verificada'}</Text>

@@ -55,6 +55,7 @@ interface MockMapProps {
   blocked: boolean
   marks?: MapMark[]
   safetyMarks?: SafetyMapMark[]
+  onSafetyMarkPress?: (mark: SafetyMapMark) => void
   /** Polyline da rota (HERE / fixture). Sem path, desenha reta eu→destino. */
   path?: GeoPoint[]
   /** Destaca a marcação do aviso ativo na Home. */
@@ -67,6 +68,7 @@ export function MockMap({
   blocked,
   marks = [],
   safetyMarks = [],
+  onSafetyMarkPress,
   path = [],
   highlightId = null,
 }: MockMapProps) {
@@ -141,7 +143,7 @@ export function MockMap({
         {safetyMarks.map((mark) => {
           const [x, y] = place(mark)
           const fill = mark.tone === 'danger' ? '#C5362B' : mark.tone === 'warning' ? '#D98600' : mark.tone === 'safe' ? '#1B7A45' : '#64748B'
-          return <Circle key={mark.id} cx={x} cy={y} r="9" fill={fill} stroke="#fff" strokeWidth="3" />
+          return <Circle key={mark.id} cx={x} cy={y} r="9" fill={fill} stroke="#fff" strokeWidth="3" onPress={() => onSafetyMarkPress?.(mark)} />
         })}
 
         {routePath ? (

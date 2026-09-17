@@ -130,7 +130,7 @@ export function RouteMap({
     const map = mapRef.current
     if (!map) return
     safetyMarkers.current.forEach((marker) => marker.remove())
-    safetyMarkers.current = safetyMarks.map((mark) => new Marker({ color: mark.tone === 'danger' ? '#C5362B' : mark.tone === 'warning' ? '#D98600' : mark.tone === 'safe' ? '#1B7A45' : '#64748B' }).setLngLat([mark.longitude, mark.latitude]).setPopup(new Popup({ offset: 18 }).setHTML(`<strong>${escapeHtml(mark.title)}</strong><br>${escapeHtml(mark.badge)}<br><small>${escapeHtml(mark.sourceLabel)}</small>`)).addTo(map))
+    safetyMarkers.current = safetyMarks.map((mark) => new Marker({ color: mark.tone === 'danger' ? '#C5362B' : mark.tone === 'warning' ? '#D98600' : mark.tone === 'safe' ? '#1B7A45' : '#64748B' }).setLngLat([mark.longitude, mark.latitude]).setPopup(new Popup({ offset: 18 }).setHTML(`<strong>${escapeHtml(mark.title)}</strong><br>${escapeHtml(mark.badge)}<br>${mark.details.map(escapeHtml).join('<br>')}<br><small>${escapeHtml(mark.sourceLabel)}</small>`)).addTo(map))
   }, [safetyMarks])
 
   useEffect(() => {

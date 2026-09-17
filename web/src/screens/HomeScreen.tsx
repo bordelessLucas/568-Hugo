@@ -5,13 +5,15 @@ import {
   filterMapMarksForTruck,
   formatRouteSummary,
   listPilotMarks,
-  DEMO_OFFICIAL_RESTRICTIONS,
-  DEMO_SAFE_PLACES,
+  listOfficialRestrictions,
+  listSafePlaces,
   buildRestrictionMark,
   buildSafePlaceMark,
   ROUTE_STATUS_LABEL,
   type GeoPoint,
   type RouteResult,
+  type OfficialRestriction,
+  type SafePlace,
 } from '@rotatrucks/back'
 import { AppFrame } from '../components/AppFrame.tsx'
 import { PlaceSearch } from '../components/PlaceSearch.tsx'
@@ -31,6 +33,8 @@ export function HomeScreen() {
   const [focus, setFocus] = useState<GeoPoint | null>(null)
   const [result, setResult] = useState<RouteResult | null>(null)
   const [routing, setRouting] = useState(false)
+  const [restrictions, setRestrictions] = useState<OfficialRestriction[]>([])
+  const [safePlaces, setSafePlaces] = useState<SafePlace[]>([])
   const truck = auth.truck
   const tags = routeTags(truck, result)
 
@@ -46,7 +50,9 @@ export function HomeScreen() {
     }))
     return filterMapMarksForTruck(pilot, truck?.type ?? null)
   }, [truck?.type])
-  const safetyMarks = useMemo(() => [...DEMO_OFFICIAL_RESTRICTIONS.map((item) => buildRestrictionMark(item, truck, new Date())), ...DEMO_SAFE_PLACES.map(buildSafePlaceMark)], [truck])
+  const safetyMarks = useMemo(() => [...restrictions.map((item) => buildRestrictionMark(item, truck, new Date())), ...safePlaces.map(buildSafePlaceMark)], [restrictions, safePlaces, truck])
+
+  useEffect(() => { void Promise.all([listOfficialRestrictions(), listSafePlaces()]).then(([nextRestrictions, nextPlaces]) => { setRestrictions(nextRestrictions); setSafePlaces(nextPlaces) }) }, [])
 
   const path = result?.status === 'compatible' ? result.path : []
 

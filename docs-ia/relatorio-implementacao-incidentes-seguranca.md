@@ -90,3 +90,7 @@ O lint web continua falhando por um problema preexistente em `web/src/lib/routin
 - Premium, anúncios, marketplace, pagamentos e white label
 
 Ordem recomendada para os próximos módulos: restrições oficiais, pontos seguros, modo seguro feminino, histórico de segurança, SOS e monetização.
+
+## Incremento posterior: restrições e pontos seguros
+
+Foi adicionada uma base curada somente leitura para restrições e pontos seguros. O domínio avalia dimensões, peso, tipo, vigência e horários contra o caminhão cadastrado. Mobile e web exibem pins distintos e uma lista de paradas com serviços e avaliações resumidas. Os dados iniciais são explicitamente demonstrativos; ingestão automática e avaliações públicas permanecem pendentes.

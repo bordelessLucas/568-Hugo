@@ -14,6 +14,7 @@ O que o produto resolve: saber se a via passa ou nao passa para o tipo e o taman
 - Mobile: tela de reportar ocorrencia (passa / nao passa) gravando no Firestore
 - Comunidade: lista, detalhe/feed, pedir/editar/cancelar pedido pendente (ver docs-ia/comunidades.md)
 - Mobile: avisos na rota estilo Waze + Continua la? (ver docs-ia/avisos-rota.md)
+- Restrições curadas por caminhão e pontos seguros demonstrativos no mapa e em lista (ver docs-ia/restricoes-pontos-seguros.md)
 - Web e mobile: ocorrencias estruturadas por categoria (condicao da via, acidente, bloqueio, risco de roubo e local inseguro)
 - Casca HERE sem chave: fixtures, client de rota web/mobile, RouteMap no web, path no MockMap, avisos com polyline, pins filtrados, checklist (ver docs-ia/here-checklist.md)
 
@@ -26,7 +27,7 @@ O que o produto resolve: saber se a via passa ou nao passa para o tipo e o taman
 - Ligar secret HERE_API_KEY + URL da function (amanha)
 - SOS, modo seguro, pontos seguros
 - Cobranca Premium / AdMob
-- Ingestao DNIT / DER
+- Ingestao automatica DNIT / DER
 - Painel admin de aprovacao de comunidades (hoje: Console Firebase)
 
 Ver docs-ia/here-checklist.md.
