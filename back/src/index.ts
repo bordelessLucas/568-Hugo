@@ -40,8 +40,28 @@ export {
 export { parseHereRoute, calculateHereTruckRoute } from './services/here-routing'
 export { ROUTE_STATUS_LABEL, formatRouteSummary, filterMapMarksForTruck } from './domain/map-route-ui'
 export type { MapMarkLike } from './domain/map-route-ui'
-export { REPORT_STATUSES, isReportStatus, ALERT_URGENCIES, isAlertUrgency, normalizeReportUrgency } from './domain/report'
-export type { Report, ReportStatus, NewReport, ReportLocation, AlertUrgency } from './domain/report'
+export {
+  REPORT_STATUSES,
+  isReportStatus,
+  ALERT_URGENCIES,
+  isAlertUrgency,
+  normalizeReportUrgency,
+  REPORT_CATEGORIES,
+  REPORT_CATEGORY_OPTIONS,
+  isReportCategory,
+  normalizeReportCategory,
+  reportCategoryRequiresNotes,
+  formatReportLabel,
+  assertReportDraft,
+} from './domain/report'
+export type {
+  Report,
+  ReportStatus,
+  NewReport,
+  ReportLocation,
+  AlertUrgency,
+  ReportCategory,
+} from './domain/report'
 export {
   ROUTE_ALERT,
   emptyAlertStats,

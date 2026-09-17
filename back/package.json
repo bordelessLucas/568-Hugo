@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "scripts": {
+    "test": "tsx --test src/**/*.test.ts"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./here": "./src/services/here-routing.ts",
@@ -11,5 +14,9 @@
   "dependencies": {
     "@here/flexpolyline": "^0.1.0",
     "firebase": "^12.19.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6",
+    "typescript": "~6.0.3"
   }
 }

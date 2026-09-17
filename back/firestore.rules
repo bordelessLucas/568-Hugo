@@ -70,13 +70,19 @@ service cloud.firestore {
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.keys().hasOnly([
           'authorId', 'truckType', 'status', 'notes', 'latitude', 'longitude',
-          'urgency', 'createdAt'
+          'category', 'urgency', 'createdAt'
         ])
         && request.resource.data.truckType in ['toco', 'truck', 'carreta_2_eixos', 'bitruck', 'bitrem']
+        && request.resource.data.category in [
+          'route_condition', 'accident', 'road_block', 'robbery_risk', 'unsafe_place'
+        ]
         && request.resource.data.status in ['passa', 'nao_passa']
         && request.resource.data.urgency in ['normal', 'extreme']
         && request.resource.data.notes is string
         && request.resource.data.notes.size() <= 500
+        && ((request.resource.data.category == 'route_condition'
+              && request.resource.data.urgency == 'normal')
+            || request.resource.data.notes.size() >= 8)
         && request.resource.data.latitude is number
         && request.resource.data.latitude >= -90
         && request.resource.data.latitude <= 90

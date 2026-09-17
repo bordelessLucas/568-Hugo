@@ -1,5 +1,5 @@
 import type { TruckType } from './truck'
-import type { ReportStatus } from './report'
+import { formatReportLabel, type ReportCategory, type ReportStatus } from './report'
 
 export type CommunityStatus = 'pending' | 'approved' | 'rejected'
 
@@ -23,6 +23,7 @@ export interface PilotMark {
   id: string
   communityId: string
   label: string
+  category: ReportCategory
   status: ReportStatus
   truckType: TruckType
   notes: string
@@ -38,7 +39,7 @@ export const PILOT_COMMUNITY: Community = {
   id: 'pilot-barra-velha',
   name: 'Barra Velha / SC',
   description:
-    'Comunidade piloto do RotaTrucks. Viaduto da BR-101 e restrições da SC-401 para validar passa e não passa.',
+    'Comunidade piloto do RotaTrucks com marcações demonstrativas para validar passa e não passa.',
   city: 'Barra Velha',
   state: 'SC',
   creatorId: 'system',
@@ -51,45 +52,23 @@ export const PILOT_COMMUNITY: Community = {
 
 export const PILOT_MARKS: PilotMark[] = [
   {
-    id: 'pilot-br101-viaduto',
-    communityId: PILOT_COMMUNITY.id,
-    label: 'Viaduto BR-101',
-    status: 'nao_passa',
-    truckType: 'bitrem',
-    notes: 'Altura crítica citada de 4,5 m. Conferir com o caminhão antes de entrar.',
-    latitude: -26.6355,
-    longitude: -48.6902,
-    source: 'DNIT / mídia local — piloto Barra Velha',
-    urgency: 'normal',
-  },
-  {
     id: 'pilot-br101-acidente',
     communityId: PILOT_COMMUNITY.id,
     label: 'Acidente grave na BR-101',
+    category: 'accident',
     status: 'nao_passa',
     truckType: 'truck',
     notes: 'Urgência extrema de exemplo do piloto. Aparece mesmo sem destino se você estiver perto.',
     latitude: -26.6332,
     longitude: -48.687,
-    source: 'Seed RotaTrucks — urgência extrema',
+    source: 'Demonstração RotaTrucks — dado simulado',
     urgency: 'extreme',
-  },
-  {
-    id: 'pilot-sc401-pico',
-    communityId: PILOT_COMMUNITY.id,
-    label: 'Acesso BR-101 / região Barra Velha (pico)',
-    status: 'nao_passa',
-    truckType: 'truck',
-    notes:
-      'Referência do piloto: em SC, caminhões acima de 23 t têm restrição de horário em vias de pico (ex.: SC-401). Confira o horário antes de seguir.',
-    latitude: -26.6408,
-    longitude: -48.7015,
-    source: 'Governo de SC — restrição estadual, pin no corredor de Barra Velha',
   },
   {
     id: 'pilot-barra-centro',
     communityId: PILOT_COMMUNITY.id,
     label: 'Centro Barra Velha',
+    category: 'route_condition',
     status: 'passa',
     truckType: 'toco',
     notes: 'Ponto de referência do piloto. Toco em circulação urbana.',
@@ -129,6 +108,7 @@ export interface CommunityFeedItem {
   id: string
   kind: 'pilot' | 'report'
   label: string
+  category: ReportCategory
   status: ReportStatus
   notes: string
   truckType: TruckType
@@ -144,6 +124,7 @@ export const COMMUNITY_NEAR_RADIUS = 0.15
 export function filterReportsNearCommunity(
   reports: Array<{
     id: string
+    category: ReportCategory
     status: ReportStatus
     notes: string
     truckType: TruckType
@@ -165,6 +146,7 @@ export function buildCommunityFeed(
   community: Community,
   reports: Array<{
     id: string
+    category: ReportCategory
     status: ReportStatus
     notes: string
     truckType: TruckType
@@ -177,6 +159,7 @@ export function buildCommunityFeed(
     id: mark.id,
     kind: 'pilot' as const,
     label: mark.label,
+    category: mark.category,
     status: mark.status,
     notes: mark.notes,
     truckType: mark.truckType,
@@ -187,7 +170,8 @@ export function buildCommunityFeed(
   const nearby = filterReportsNearCommunity(reports, community).map((report) => ({
     id: report.id,
     kind: 'report' as const,
-    label: report.status === 'passa' ? 'Ocorrência: passa' : 'Ocorrência: não passa',
+    label: formatReportLabel(report.category, report.status),
+    category: report.category,
     status: report.status,
     notes: report.notes || 'Sem observação.',
     truckType: report.truckType,
