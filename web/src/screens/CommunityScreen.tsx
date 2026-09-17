@@ -326,11 +326,8 @@ function DetailView({
           {feed.map((item) => (
             <li key={item.id} className="rounded-2xl border border-line bg-surface px-5 py-4">
               <p className="font-body text-base font-bold text-ink">
-                <span className={item.status === 'passa' ? 'text-pass' : 'text-danger'}>
-                  {item.status === 'passa' ? '● Passa' : '● Não passa'}
-                </span>
-                {' · '}
-                {item.label}
+                <span className={item.status === 'passa' ? 'text-pass' : 'text-danger'}>●</span>
+                {' '}{item.label}
               </p>
               <p className="mt-1 font-body text-sm text-muted">{item.notes}</p>
             </li>

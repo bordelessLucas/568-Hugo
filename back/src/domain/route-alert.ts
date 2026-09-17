@@ -1,4 +1,4 @@
-import type { ReportStatus, AlertUrgency } from './report'
+import type { ReportStatus, AlertUrgency, ReportCategory } from './report'
 import type { TruckType } from './truck'
 
 export type { AlertUrgency }
@@ -38,6 +38,7 @@ export interface RouteAlertSource {
   id: string
   kind: 'report' | 'pilot'
   label: string
+  category: ReportCategory
   status: ReportStatus
   notes: string
   truckType: TruckType

@@ -12,7 +12,14 @@ import {
   where,
   type DocumentData,
 } from 'firebase/firestore'
-import { isReportStatus, normalizeReportUrgency, type NewReport, type Report } from '../domain/report'
+import {
+  assertReportDraft,
+  isReportStatus,
+  normalizeReportCategory,
+  normalizeReportUrgency,
+  type NewReport,
+  type Report,
+} from '../domain/report'
 import { assertTruckDraft, isTruckType, type NewTruck, type Truck, type TruckType } from '../domain/truck'
 import { getFirebaseAuth, getFirestoreDb } from './firebase'
 
@@ -91,6 +98,7 @@ function parseReport(id: string, data: DocumentData): Report {
   }
   return {
     id,
+    category: normalizeReportCategory(record.category),
     status,
     notes: readOptionalString(record, 'notes'),
     latitude: readNumber(record, 'latitude'),
@@ -99,12 +107,6 @@ function parseReport(id: string, data: DocumentData): Report {
     authorId: readString(record, 'authorId'),
     createdAt: readCreatedAt(record),
     urgency: normalizeReportUrgency(record.urgency),
-  }
-}
-
-function assertLocation(latitude: number, longitude: number): void {
-  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-    throw new Error('Localização inválida.')
   }
 }
 
@@ -152,27 +154,16 @@ export async function listTrucksByUser(userId: string): Promise<Truck[]> {
 }
 
 export async function createReport(report: NewReport): Promise<Report> {
-  assertLocation(report.latitude, report.longitude)
-  if (!isTruckType(report.truckType)) {
-    throw new Error('Tipo de caminhão inválido.')
-  }
-  if (!isReportStatus(report.status)) {
-    throw new Error('Status inválido.')
-  }
+  assertReportDraft(report)
   const uid = getFirebaseAuth().currentUser?.uid
   if (!uid || report.authorId !== uid) {
     throw new Error('Ocorrência sem autor autenticado.')
   }
-  if (report.notes.length > 500) {
-    throw new Error('Observações com no máximo 500 caracteres.')
-  }
   const urgency = normalizeReportUrgency(report.urgency)
-  if (urgency === 'extreme' && report.notes.trim().length < 8) {
-    throw new Error('Na urgência extrema, descreva o que aconteceu (mínimo 8 caracteres).')
-  }
   const created = await addDoc(collection(getFirestoreDb(), REPORTS), {
     authorId: uid,
     truckType: report.truckType,
+    category: report.category,
     status: report.status,
     notes: report.notes.trim(),
     latitude: report.latitude,

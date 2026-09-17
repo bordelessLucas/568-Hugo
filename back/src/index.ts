@@ -8,6 +8,14 @@ export {
   isTruckType,
 } from './domain/truck'
 export type { Truck, TruckType, TruckDimensions, NewTruck } from './domain/truck'
+export { assertOfficialRestriction, evaluateOfficialRestriction, formatRestrictionReason } from './domain/official-restriction'
+export type { OfficialRestriction, RestrictionEvaluation, RestrictionEvaluationStatus, RestrictionEffect, RestrictionSourceStatus, RestrictionLimits, RestrictionTimeWindow } from './domain/official-restriction'
+export { SAFE_PLACE_SERVICES, assertSafePlace, hasWomenFriendlySeal, sortSafePlacesByDistance } from './domain/safe-place'
+export type { SafePlace, SafePlaceService } from './domain/safe-place'
+export { DEMO_OFFICIAL_RESTRICTIONS, DEMO_SAFE_PLACES } from './domain/safety-fixtures'
+export { SAFETY_SOURCE_LABELS, buildRestrictionMark, buildSafePlaceMark, formatSafePlaceServices } from './domain/safety-map'
+export type { SafetyMapMark } from './domain/safety-map'
+export { listOfficialRestrictions, listSafePlaces } from './services/safety.service'
 export {
   TRUCK_TYPE_OPTIONS,
   NATIONAL_DIMENSION_LIMITS,
@@ -40,8 +48,28 @@ export {
 export { parseHereRoute, calculateHereTruckRoute } from './services/here-routing'
 export { ROUTE_STATUS_LABEL, formatRouteSummary, filterMapMarksForTruck } from './domain/map-route-ui'
 export type { MapMarkLike } from './domain/map-route-ui'
-export { REPORT_STATUSES, isReportStatus, ALERT_URGENCIES, isAlertUrgency, normalizeReportUrgency } from './domain/report'
-export type { Report, ReportStatus, NewReport, ReportLocation, AlertUrgency } from './domain/report'
+export {
+  REPORT_STATUSES,
+  isReportStatus,
+  ALERT_URGENCIES,
+  isAlertUrgency,
+  normalizeReportUrgency,
+  REPORT_CATEGORIES,
+  REPORT_CATEGORY_OPTIONS,
+  isReportCategory,
+  normalizeReportCategory,
+  reportCategoryRequiresNotes,
+  formatReportLabel,
+  assertReportDraft,
+} from './domain/report'
+export type {
+  Report,
+  ReportStatus,
+  NewReport,
+  ReportLocation,
+  AlertUrgency,
+  ReportCategory,
+} from './domain/report'
 export {
   ROUTE_ALERT,
   emptyAlertStats,

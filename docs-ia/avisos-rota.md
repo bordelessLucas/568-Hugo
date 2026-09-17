@@ -54,6 +54,16 @@ Home (GPS ok)
 - Chip “Só urgência extrema” quando não há destino
 - Limpar destino no X da busca (sai do modo rota)
 
+## Categorias de ocorrência (implementado)
+
+- Condição da via (`route_condition`)
+- Acidente (`accident`)
+- Bloqueio (`road_block`)
+- Risco de roubo (`robbery_risk`)
+- Local inseguro (`unsafe_place`)
+
+Registros antigos sem categoria continuam sendo lidos como condição da via. Categorias de segurança e urgências extremas exigem uma descrição curta. Urgência extrema é um aviso comunitário e não substitui polícia ou atendimento de emergência.
+
 ## Fora deste corte
 
 - Push com app fechado

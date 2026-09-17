@@ -7,6 +7,7 @@ import {
   type DocumentData,
 } from 'firebase/firestore'
 import { PILOT_MARKS } from '../domain/community'
+import { formatReportLabel } from '../domain/report'
 import {
   applyConfirmationVote,
   emptyAlertStats,
@@ -77,12 +78,8 @@ export async function listRouteAlertSources(limitReports = 60): Promise<RouteAle
   const fromReports: RouteAlertSource[] = reports.map((report) => ({
     id: alertIdForReport(report.id),
     kind: 'report',
-    label:
-      report.urgency === 'extreme'
-        ? report.notes.trim() || 'Urgência extrema na via'
-        : report.status === 'passa'
-          ? 'Ocorrência: passa'
-          : 'Ocorrência: não passa',
+    label: formatReportLabel(report.category, report.status),
+    category: report.category,
     status: report.status,
     notes: report.notes || 'Sem observação.',
     truckType: report.truckType,
@@ -96,6 +93,7 @@ export async function listRouteAlertSources(limitReports = 60): Promise<RouteAle
     id: alertIdForPilot(mark.id),
     kind: 'pilot',
     label: mark.label,
+    category: mark.category,
     status: mark.status,
     notes: mark.notes,
     truckType: mark.truckType,

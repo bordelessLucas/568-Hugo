@@ -7,9 +7,16 @@ import {
   filterMapMarksForTruck,
   formatRouteSummary,
   listPilotMarks,
+  listOfficialRestrictions,
+  listSafePlaces,
+  buildRestrictionMark,
+  buildSafePlaceMark,
   ROUTE_STATUS_LABEL,
   TRUCK_TYPE_OPTIONS,
   type RouteResult,
+  type OfficialRestriction,
+  type SafePlace,
+  type SafetyMapMark,
 } from '@rotatrucks/back'
 import { tokens } from '@rotatrucks/back/tokens'
 import { IconChip, IconFab } from '@/components/IconFab'
@@ -41,6 +48,9 @@ export function HomeScreen() {
   const [legendSeen, setLegendSeen] = useState(true)
   const [result, setResult] = useState<RouteResult | null>(null)
   const [routing, setRouting] = useState(false)
+  const [restrictions, setRestrictions] = useState<OfficialRestriction[]>([])
+  const [safePlaces, setSafePlaces] = useState<SafePlace[]>([])
+  const [selectedSafetyMark, setSelectedSafetyMark] = useState<SafetyMapMark | null>(null)
   const truck = auth.truck
   const path = result?.status === 'compatible' ? result.path : []
   const tags = routeTags(truck, result)
@@ -58,6 +68,9 @@ export function HomeScreen() {
     }))
     return filterMapMarksForTruck(pilot, truck?.type ?? null)
   }, [truck?.type])
+  const safetyMarks = useMemo(() => [...restrictions.map((item) => buildRestrictionMark(item, truck, new Date())), ...safePlaces.map(buildSafePlaceMark)], [restrictions, safePlaces, truck])
+
+  useEffect(() => { void Promise.all([listOfficialRestrictions(), listSafePlaces()]).then(([nextRestrictions, nextPlaces]) => { setRestrictions(nextRestrictions); setSafePlaces(nextPlaces) }) }, [])
 
   const routeAlerts = useRouteAlerts({
     enabled: Boolean(auth.session) && location.status === 'ready',
@@ -123,6 +136,8 @@ export function HomeScreen() {
           destination={destination?.point ?? null}
           blocked={routeBlocked}
           marks={marks}
+          safetyMarks={safetyMarks}
+          onSafetyMarkPress={setSelectedSafetyMark}
           path={path}
           highlightId={
             routeAlerts.alert?.source.kind === 'pilot'
@@ -255,6 +270,12 @@ export function HomeScreen() {
             <Text style={styles.alertError}>{routeAlerts.error}</Text>
           </View>
         ) : null}
+        {selectedSafetyMark ? <View style={[styles.safetyCard, { left: sidePad, right: sidePad }]}>
+          <View style={styles.safetyCardHeader}><Text style={styles.safetyCardTitle}>{selectedSafetyMark.title}</Text><Pressable accessibilityRole="button" accessibilityLabel="Fechar detalhes" onPress={() => setSelectedSafetyMark(null)}><Text style={styles.safetyClose}>Fechar</Text></Pressable></View>
+          <Text style={styles.safetyBadge}>{selectedSafetyMark.badge} · {selectedSafetyMark.sourceLabel}</Text>
+          {selectedSafetyMark.details.map((detail) => <Text key={detail} style={styles.safetyDetail}>{detail}</Text>)}
+          {selectedSafetyMark.kind === 'safe_place' ? <Text style={styles.safetyWarning}>As condições podem mudar. Confirme antes de parar.</Text> : null}
+        </View> : null}
 
         <View
           style={[
@@ -437,4 +458,11 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.field,
     marginTop: tokens.space[2],
   },
+  safetyCard: { position: 'absolute', bottom: 96, zIndex: 5, gap: 6, padding: 14, borderRadius: 16, backgroundColor: tokens.color.surface, borderWidth: 1, borderColor: tokens.color.line },
+  safetyCardHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  safetyCardTitle: { flex: 1, fontFamily: tokens.font.label, fontSize: 16, color: tokens.color.ink },
+  safetyClose: { fontFamily: tokens.font.label, color: tokens.color.brand },
+  safetyBadge: { fontFamily: tokens.font.label, fontSize: 12, color: tokens.color.muted },
+  safetyDetail: { fontFamily: tokens.font.body, fontSize: 13, color: tokens.color.ink },
+  safetyWarning: { fontFamily: tokens.font.body, fontSize: 12, color: tokens.color.muted },
 })

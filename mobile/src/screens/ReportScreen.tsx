@@ -2,10 +2,14 @@ import { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import {
+  REPORT_CATEGORIES,
+  REPORT_CATEGORY_OPTIONS,
   REPORT_STATUSES,
   TRUCK_TYPE_OPTIONS,
   TRUCK_TYPES,
   createReport,
+  reportCategoryRequiresNotes,
+  type ReportCategory,
   type ReportStatus,
   type TruckType,
 } from '@rotatrucks/back'
@@ -31,6 +35,7 @@ export function ReportScreen() {
   const settings = useSettings()
   const router = useRouter()
   const location = useDeviceLocation(settings.shareLocation)
+  const [category, setCategory] = useState<ReportCategory>('route_condition')
   const [truckType, setTruckType] = useState<TruckType | null>(auth.truck?.type ?? null)
   const [status, setStatus] = useState<ReportStatus | null>(null)
   const [notes, setNotes] = useState('')
@@ -53,8 +58,8 @@ export function ReportScreen() {
       setError('Permita a localização para gravar o ponto.')
       return
     }
-    if (extreme && notes.trim().length < 8) {
-      setError('Na urgência extrema, escreva o que aconteceu (ex.: acidente grave na pista).')
+    if ((reportCategoryRequiresNotes(category) || extreme) && notes.trim().length < 8) {
+      setError('Descreva o que aconteceu com pelo menos 8 caracteres.')
       return
     }
     setSaving(true)
@@ -62,6 +67,7 @@ export function ReportScreen() {
       await createReport({
         authorId: auth.session.uid,
         truckType,
+        category,
         status,
         notes: notes.trim(),
         latitude: location.point.latitude,
@@ -107,6 +113,31 @@ export function ReportScreen() {
           back
         />
 
+        <Text style={styles.caption}>O que aconteceu?</Text>
+        {REPORT_CATEGORIES.map((value) => (
+          <Pressable
+            key={value}
+            onPress={() => setCategory(value)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: category === value }}
+            accessibilityLabel={REPORT_CATEGORY_OPTIONS[value].label}
+            style={pressStyle([styles.choice, category === value ? styles.choiceOn : null], {
+              opacity: 0.9,
+              pressed: styles.choicePressed,
+            })}
+          >
+            <Icon
+              name={value === 'route_condition' ? 'trail-sign-outline' : 'warning-outline'}
+              size={18}
+              color={category === value ? tokens.color.brand : tokens.color.muted}
+            />
+            <View style={styles.choiceCopy}>
+              <Text style={styles.label}>{REPORT_CATEGORY_OPTIONS[value].label}</Text>
+              <Text style={styles.muted}>{REPORT_CATEGORY_OPTIONS[value].description}</Text>
+            </View>
+          </Pressable>
+        ))}
+
         <Text style={styles.caption}>Tipo de caminhão</Text>
         {TRUCK_TYPES.map((value) => (
           <Pressable
@@ -129,7 +160,7 @@ export function ReportScreen() {
           </Pressable>
         ))}
 
-        <Text style={styles.caption}>Situação</Text>
+        <Text style={styles.caption}>Dá para seguir com o caminhão?</Text>
         <View style={styles.row}>
           {REPORT_STATUSES.map((value) => (
             <Pressable
@@ -163,17 +194,23 @@ export function ReportScreen() {
           label="Observações"
           value={notes}
           onChangeText={setNotes}
-          placeholder={extreme ? 'Ex.: acidente grave na pista' : 'Opcional'}
+          placeholder={
+            reportCategoryRequiresNotes(category) || extreme
+              ? 'Descreva o risco em pelo menos 8 caracteres'
+              : 'Opcional'
+          }
           icon="document"
           error={
-            extreme && notes.trim().length > 0 && notes.trim().length < 8
-              ? 'Na urgência extrema, use pelo menos 8 caracteres.'
+            (reportCategoryRequiresNotes(category) || extreme) &&
+            notes.trim().length > 0 &&
+            notes.trim().length < 8
+              ? 'Use pelo menos 8 caracteres.'
               : undefined
           }
         />
         {extreme ? (
           <Text style={styles.muted}>
-            Urgência extrema exige uma descrição curta do risco (mínimo 8 caracteres).
+            Urgência extrema exige uma descrição curta e não substitui polícia ou atendimento de emergência.
           </Text>
         ) : null}
 
@@ -253,6 +290,10 @@ const styles = StyleSheet.create({
   choiceOn: {
     borderColor: tokens.color.brand,
     backgroundColor: tokens.color.fog,
+  },
+  choiceCopy: {
+    flex: 1,
+    gap: 2,
   },
   choicePressed: {
     backgroundColor: '#EAF4FB',

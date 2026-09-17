@@ -58,6 +58,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="pontos-seguros"
+        options={{ title: 'Paradas', tabBarIcon: ({ color, focused }) => <TabIcon name={focused ? 'shield-checkmark' : 'shield-checkmark-outline'} color={color} focused={focused} /> }}
+      />
+      <Tabs.Screen
         name="perfil"
         options={{
           title: 'Perfil',

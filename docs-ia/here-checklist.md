@@ -8,6 +8,7 @@
 - Web: Home usa `RouteMap` + estados de rota
 - Mobile: client `requestTruckRoute` + path no MockMap
 - Avisos na rota: aceitam `path` (polyline); sem path mantém reta
+- Camadas de segurança: restrições e pontos seguros usam pins próprios; não alteram o path calculado
 
 ## Amanhã, com a chave (ordem)
 
