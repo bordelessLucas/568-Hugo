@@ -1,0 +1,13 @@
+---
+description: Mobile UI must use real icons, never letter abbreviations
+globs: mobile/**/*.{tsx,ts,jsx,js}
+alwaysApply: false
+---
+
+# Mobile icons and chrome
+
+- Never use single-letter or abbreviation marks as tab icons, FABs, or action buttons (e.g. "M", "C", "P", "A").
+- Use `@expo/vector-icons` (Ionicons) or another real icon set for tabs, FABs, list actions, and screen headers.
+- Pair icons with short labels where navigation needs text; icon-only only for secondary FABs with a clear metaphor (e.g. warning triangle for ocorrência).
+- Occurrence / report is an optional secondary action (Waze-style FAB), not a primary full-width CTA on the map home.
+- Prefer one shared `Icon` helper under `mobile/src/components` instead of ad-hoc letter `Text` icons.
