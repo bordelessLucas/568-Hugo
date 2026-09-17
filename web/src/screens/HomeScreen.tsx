@@ -5,6 +5,10 @@ import {
   filterMapMarksForTruck,
   formatRouteSummary,
   listPilotMarks,
+  DEMO_OFFICIAL_RESTRICTIONS,
+  DEMO_SAFE_PLACES,
+  buildRestrictionMark,
+  buildSafePlaceMark,
   ROUTE_STATUS_LABEL,
   type GeoPoint,
   type RouteResult,
@@ -42,6 +46,7 @@ export function HomeScreen() {
     }))
     return filterMapMarksForTruck(pilot, truck?.type ?? null)
   }, [truck?.type])
+  const safetyMarks = useMemo(() => [...DEMO_OFFICIAL_RESTRICTIONS.map((item) => buildRestrictionMark(item, truck, new Date())), ...DEMO_SAFE_PLACES.map(buildSafePlaceMark)], [truck])
 
   const path = result?.status === 'compatible' ? result.path : []
 
@@ -74,6 +79,7 @@ export function HomeScreen() {
           focus={focus}
           path={path}
           marks={marks}
+          safetyMarks={safetyMarks}
           blocked={tags.includes('Não passa')}
           onPick={(point) => {
             setDestination(point)

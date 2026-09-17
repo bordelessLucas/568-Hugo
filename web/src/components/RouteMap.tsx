@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { LngLatBounds, Map, Marker, NavigationControl, type GeoJSONSource, type MapMouseEvent } from 'maplibre-gl'
+import { LngLatBounds, Map, Marker, NavigationControl, Popup, type GeoJSONSource, type MapMouseEvent } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import type { GeoPoint } from '@rotatrucks/back'
+import type { GeoPoint, SafetyMapMark } from '@rotatrucks/back'
 import { hereMapsConfigured } from '../lib/routing.ts'
 
 const STYLE = 'https://tiles.openfreemap.org/styles/liberty'
@@ -21,6 +21,7 @@ interface RouteMapProps {
   focus: GeoPoint | null
   path: GeoPoint[]
   marks?: RouteMapMark[]
+  safetyMarks?: SafetyMapMark[]
   blocked?: boolean
   onPick: (point: GeoPoint) => void
 }
@@ -31,6 +32,7 @@ export function RouteMap({
   focus,
   path,
   marks = [],
+  safetyMarks = [],
   blocked = false,
   onPick,
 }: RouteMapProps) {
@@ -40,6 +42,7 @@ export function RouteMap({
   const userMarker = useRef<Marker | null>(null)
   const destinationMarker = useRef<Marker | null>(null)
   const markMarkers = useRef<Marker[]>([])
+  const safetyMarkers = useRef<Marker[]>([])
 
   pickRef.current = onPick
 
@@ -68,6 +71,7 @@ export function RouteMap({
       userMarker.current?.remove()
       destinationMarker.current?.remove()
       markMarkers.current.forEach((marker) => marker.remove())
+      safetyMarkers.current.forEach((marker) => marker.remove())
       map.remove()
       mapRef.current = null
     }
@@ -125,6 +129,13 @@ export function RouteMap({
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
+    safetyMarkers.current.forEach((marker) => marker.remove())
+    safetyMarkers.current = safetyMarks.map((mark) => new Marker({ color: mark.tone === 'danger' ? '#C5362B' : mark.tone === 'warning' ? '#D98600' : mark.tone === 'safe' ? '#1B7A45' : '#64748B' }).setLngLat([mark.longitude, mark.latitude]).setPopup(new Popup({ offset: 18 }).setHTML(`<strong>${escapeHtml(mark.title)}</strong><br>${escapeHtml(mark.badge)}<br><small>${escapeHtml(mark.sourceLabel)}</small>`)).addTo(map))
+  }, [safetyMarks])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
     const draw = () => drawPath(map, path, blocked)
     if (map.isStyleLoaded()) draw()
     else map.once('load', draw)
@@ -141,6 +152,8 @@ export function RouteMap({
     </div>
   )
 }
+
+function escapeHtml(value: string): string { return value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!) }
 
 function drawPath(map: Map, path: GeoPoint[], blocked: boolean) {
   const existing = map.getSource('route')

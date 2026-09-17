@@ -5,13 +5,14 @@ import { useAuth } from '../contexts/AuthContext.tsx'
 import { useSettings } from '../contexts/SettingsContext.tsx'
 
 interface AppFrameProps {
-  current: 'map' | 'profile' | 'settings' | 'community' | 'report'
+  current: 'map' | 'profile' | 'settings' | 'community' | 'report' | 'safePlaces'
   children: ReactNode
 }
 
 const NAV = [
   { id: 'map', label: 'Mapa', path: '/home' },
   { id: 'community', label: 'Comunidade', path: '/comunidade' },
+  { id: 'safePlaces', label: 'Pontos seguros', path: '/pontos-seguros' },
   { id: 'settings', label: 'Configurações', path: '/configuracoes' },
 ] as const
 

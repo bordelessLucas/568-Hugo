@@ -9,6 +9,7 @@ import { RegisterScreen } from './screens/RegisterScreen.tsx'
 import { SettingsScreen } from './screens/SettingsScreen.tsx'
 import { CommunityScreen } from './screens/CommunityScreen.tsx'
 import { ReportScreen } from './screens/ReportScreen.tsx'
+import { SafePlacesScreen } from './screens/SafePlacesScreen.tsx'
 
 function SetupOverlay() {
   const { status, onboardingOpen } = useAuth()
@@ -102,6 +103,10 @@ export default function App() {
               <ReportScreen />
             </RequireAuth>
           }
+        />
+        <Route
+          path="/pontos-seguros"
+          element={<RequireAuth><SafePlacesScreen /></RequireAuth>}
         />
         <Route
           path="/perfil"
