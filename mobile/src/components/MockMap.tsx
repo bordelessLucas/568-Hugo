@@ -1,4 +1,4 @@
-import type { GeoPoint } from '@rotatrucks/back'
+import type { GeoPoint, SafetyMapMark } from '@rotatrucks/back'
 import { useMemo } from 'react'
 import { StyleSheet, View } from 'react-native'
 import Svg, { Circle, Defs, Line, Path, Pattern, Polygon, Text as SvgText } from 'react-native-svg'
@@ -54,6 +54,7 @@ interface MockMapProps {
   destination: GeoPoint | null
   blocked: boolean
   marks?: MapMark[]
+  safetyMarks?: SafetyMapMark[]
   /** Polyline da rota (HERE / fixture). Sem path, desenha reta eu→destino. */
   path?: GeoPoint[]
   /** Destaca a marcação do aviso ativo na Home. */
@@ -65,12 +66,13 @@ export function MockMap({
   destination,
   blocked,
   marks = [],
+  safetyMarks = [],
   path = [],
   highlightId = null,
 }: MockMapProps) {
   const viewBox = useMemo(
-    () => fitViewBox(userLocation, destination, marks, path),
-    [destination, marks, path, userLocation],
+    () => fitViewBox(userLocation, destination, [...marks, ...safetyMarks], path),
+    [destination, marks, path, safetyMarks, userLocation],
   )
   const land = LAND.map((point) => place(point).join(',')).join(' ')
   const routePath =
@@ -136,6 +138,11 @@ export function MockMap({
             />
           )
         })}
+        {safetyMarks.map((mark) => {
+          const [x, y] = place(mark)
+          const fill = mark.tone === 'danger' ? '#C5362B' : mark.tone === 'warning' ? '#D98600' : mark.tone === 'safe' ? '#1B7A45' : '#64748B'
+          return <Circle key={mark.id} cx={x} cy={y} r="9" fill={fill} stroke="#fff" strokeWidth="3" />
+        })}
 
         {routePath ? (
           <>
@@ -197,7 +204,7 @@ function pathToSvg(path: GeoPoint[]): string {
 function fitViewBox(
   user: GeoPoint | null,
   destination: GeoPoint | null,
-  marks: MapMark[],
+  marks: Array<Pick<GeoPoint, 'latitude' | 'longitude'>>,
   path: GeoPoint[] = [],
 ): string {
   const focus: GeoPoint[] = []

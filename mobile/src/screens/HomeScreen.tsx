@@ -7,6 +7,10 @@ import {
   filterMapMarksForTruck,
   formatRouteSummary,
   listPilotMarks,
+  DEMO_OFFICIAL_RESTRICTIONS,
+  DEMO_SAFE_PLACES,
+  buildRestrictionMark,
+  buildSafePlaceMark,
   ROUTE_STATUS_LABEL,
   TRUCK_TYPE_OPTIONS,
   type RouteResult,
@@ -58,6 +62,10 @@ export function HomeScreen() {
     }))
     return filterMapMarksForTruck(pilot, truck?.type ?? null)
   }, [truck?.type])
+  const safetyMarks = useMemo(() => [
+    ...DEMO_OFFICIAL_RESTRICTIONS.map((item) => buildRestrictionMark(item, truck, new Date())),
+    ...DEMO_SAFE_PLACES.map(buildSafePlaceMark),
+  ], [truck])
 
   const routeAlerts = useRouteAlerts({
     enabled: Boolean(auth.session) && location.status === 'ready',
@@ -123,6 +131,7 @@ export function HomeScreen() {
           destination={destination?.point ?? null}
           blocked={routeBlocked}
           marks={marks}
+          safetyMarks={safetyMarks}
           path={path}
           highlightId={
             routeAlerts.alert?.source.kind === 'pilot'
