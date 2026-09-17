@@ -18,6 +18,7 @@ dist-ssr
 .firebase
 .netlify
 .expo
+.worktrees/
 android
 ios
 
