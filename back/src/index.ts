@@ -8,6 +8,8 @@ export {
   isTruckType,
 } from './domain/truck'
 export type { Truck, TruckType, TruckDimensions, NewTruck } from './domain/truck'
+export { assertOfficialRestriction, evaluateOfficialRestriction, formatRestrictionReason } from './domain/official-restriction'
+export type { OfficialRestriction, RestrictionEvaluation, RestrictionEvaluationStatus, RestrictionEffect, RestrictionSourceStatus, RestrictionLimits, RestrictionTimeWindow } from './domain/official-restriction'
 export {
   TRUCK_TYPE_OPTIONS,
   NATIONAL_DIMENSION_LIMITS,
