@@ -10,6 +10,8 @@ export {
 export type { Truck, TruckType, TruckDimensions, NewTruck } from './domain/truck'
 export { assertOfficialRestriction, evaluateOfficialRestriction, formatRestrictionReason } from './domain/official-restriction'
 export type { OfficialRestriction, RestrictionEvaluation, RestrictionEvaluationStatus, RestrictionEffect, RestrictionSourceStatus, RestrictionLimits, RestrictionTimeWindow } from './domain/official-restriction'
+export { SAFE_PLACE_SERVICES, assertSafePlace, hasWomenFriendlySeal, sortSafePlacesByDistance } from './domain/safe-place'
+export type { SafePlace, SafePlaceService } from './domain/safe-place'
 export {
   TRUCK_TYPE_OPTIONS,
   NATIONAL_DIMENSION_LIMITS,
