@@ -12,6 +12,10 @@ export { assertOfficialRestriction, evaluateOfficialRestriction, formatRestricti
 export type { OfficialRestriction, RestrictionEvaluation, RestrictionEvaluationStatus, RestrictionEffect, RestrictionSourceStatus, RestrictionLimits, RestrictionTimeWindow } from './domain/official-restriction'
 export { SAFE_PLACE_SERVICES, assertSafePlace, hasWomenFriendlySeal, sortSafePlacesByDistance } from './domain/safe-place'
 export type { SafePlace, SafePlaceService } from './domain/safe-place'
+export { DEMO_OFFICIAL_RESTRICTIONS, DEMO_SAFE_PLACES } from './domain/safety-fixtures'
+export { SAFETY_SOURCE_LABELS, buildRestrictionMark, buildSafePlaceMark, formatSafePlaceServices } from './domain/safety-map'
+export type { SafetyMapMark } from './domain/safety-map'
+export { listOfficialRestrictions, listSafePlaces } from './services/safety.service'
 export {
   TRUCK_TYPE_OPTIONS,
   NATIONAL_DIMENSION_LIMITS,
