@@ -16,6 +16,10 @@ export { DEMO_OFFICIAL_RESTRICTIONS, DEMO_SAFE_PLACES } from './domain/safety-fi
 export { SAFETY_SOURCE_LABELS, buildRestrictionMark, buildSafePlaceMark, formatSafePlaceServices } from './domain/safety-map'
 export type { SafetyMapMark } from './domain/safety-map'
 export { listOfficialRestrictions, listSafePlaces } from './services/safety.service'
+export { SAFETY_COMMAND_LABELS, pickSafetyGuidance } from './domain/safety-guidance'
+export type { SafetyCommand, SafetyGuidanceCandidate } from './domain/safety-guidance'
+export { assertTrustedContacts, createEmergencyProtocol, buildEmergencyMessage } from './domain/emergency'
+export type { TrustedContact, EmergencyProtocol, EmergencyTransportResult } from './domain/emergency'
 export {
   TRUCK_TYPE_OPTIONS,
   NATIONAL_DIMENSION_LIMITS,
