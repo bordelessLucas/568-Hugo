@@ -25,11 +25,17 @@ function report(overrides: Partial<NewReport> = {}): NewReport {
 test('normaliza categoria ausente ou desconhecida como condição da via', () => {
   assert.equal(normalizeReportCategory(undefined), 'route_condition')
   assert.equal(normalizeReportCategory('unknown'), 'route_condition')
+  assert.equal(normalizeReportCategory('accident'), 'accident')
+  assert.equal(normalizeReportCategory('road_block'), 'road_block')
+  assert.equal(normalizeReportCategory('robbery_risk'), 'robbery_risk')
+  assert.equal(normalizeReportCategory('unsafe_place'), 'unsafe_place')
 })
 
 test('formata rótulos simples para feed e alertas', () => {
   assert.equal(formatReportLabel('accident', 'nao_passa'), 'Acidente: não passa')
   assert.equal(formatReportLabel('road_block', 'passa'), 'Bloqueio: passa com atenção')
+  assert.equal(formatReportLabel('route_condition', 'passa'), 'Condição da via: passa')
+  assert.equal(formatReportLabel('robbery_risk', 'passa'), 'Risco de roubo')
 })
 
 test('exige descrição nas categorias de segurança', () => {

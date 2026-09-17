@@ -97,7 +97,8 @@ export type NewReport = Omit<Report, 'id' | 'createdAt'>
 export function formatReportLabel(category: ReportCategory, status: ReportStatus): string {
   const categoryLabel = REPORT_CATEGORY_OPTIONS[category].label
   if (category === 'robbery_risk' || category === 'unsafe_place') return categoryLabel
-  return `${categoryLabel}: ${status === 'passa' ? 'passa com atenção' : 'não passa'}`
+  const passLabel = category === 'route_condition' ? 'passa' : 'passa com atenção'
+  return `${categoryLabel}: ${status === 'passa' ? passLabel : 'não passa'}`
 }
 
 export function assertReportDraft(report: NewReport): void {

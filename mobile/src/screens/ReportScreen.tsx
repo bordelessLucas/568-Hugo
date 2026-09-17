@@ -209,9 +209,9 @@ export function ReportScreen() {
           }
         />
         {extreme ? (
-            <Text style={styles.muted}>
-              Urgência extrema exige uma descrição curta e não substitui polícia ou atendimento de emergência.
-            </Text>
+          <Text style={styles.muted}>
+            Urgência extrema exige uma descrição curta e não substitui polícia ou atendimento de emergência.
+          </Text>
         ) : null}
 
         <Pressable
