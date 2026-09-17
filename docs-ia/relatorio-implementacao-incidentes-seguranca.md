@@ -1,96 +1,145 @@
-# Relatório de implementação — incidentes de segurança
+# Relatório consolidado - segurança, restrições e pontos seguros
 
 Data: 17 de setembro de 2026
 Branch: `feat/incidentes-seguranca`
 
-## Resultado
+## Resumo
 
-O fluxo de ocorrências do RotaTrucks foi ampliado para registrar riscos de segurança estruturados sem remover o núcleo de passabilidade definido pelo cliente.
+Este trabalho entregou dois incrementos do RotaTrucks: incidentes de segurança estruturados e uma base curada de restrições viárias/pontos seguros. Os recursos foram integrados ao backend, Firestore, mobile e web sem misturar relatos comunitários com fontes verificadas.
 
-Categorias entregues:
+## Incidentes de segurança
 
-- Condição da via
-- Acidente
-- Bloqueio
-- Risco de roubo
-- Local inseguro
+O fluxo de ocorrências passou a aceitar condição da via, acidente, bloqueio, risco de roubo e local inseguro. Cada registro contém categoria, caminhão, passabilidade, observação, GPS, autoria, data e urgência.
 
-Cada registro continua informando o caminhão, se é possível seguir, observação, GPS, autoria, data e urgência.
+### Backend e Firestore
 
-## Implementação
-
-### Domínio compartilhado
-
-- Criado o tipo `ReportCategory` com cinco valores persistidos.
-- Criados rótulos e descrições compartilhados entre web, mobile, feed e alertas.
+- Criados `ReportCategory`, opções e textos compartilhados.
 - Centralizada a validação de categoria, veículo, status, urgência, localização e observação.
-- Categorias de segurança e urgências extremas exigem descrição de pelo menos oito caracteres.
-- Registros antigos sem categoria são normalizados como `route_condition`.
+- Categorias de segurança e urgências extremas exigem descrição mínima.
+- Registros antigos sem categoria são normalizados como condição da via.
+- Feed e alertas passaram a carregar categoria.
+- Regras do Firestore aceitam somente valores conhecidos e mantêm update/delete bloqueados.
+- Preservados corredor da rota, proximidade, confirmação “Continua lá?” e redução de prioridade.
 
-### Firestore
+### Frontend
 
-- Novos documentos da coleção `reports` persistem `category`.
-- As regras aceitam somente os cinco valores conhecidos.
-- As regras também exigem descrição mínima para categorias de segurança e urgência extrema.
-- Edição e exclusão de ocorrências pelo cliente continuam bloqueadas.
+- Mobile e web receberam seleção de categoria.
+- A pergunta principal passou a ser “Dá para seguir com o caminhão?”.
+- Instruções e validações mudam conforme categoria e urgência.
+- A web recebeu o controle de urgência extrema.
+- Urgências extremas informam que o recurso não substitui polícia ou emergência.
+- Feed, alertas e formulários usam os mesmos rótulos do domínio.
 
-### Alertas e comunidade
+## Restrições viárias curadas
 
-- Categoria passa a fazer parte das fontes de alerta e dos itens do feed.
-- Feed e cartões usam os mesmos rótulos gerados pelo domínio.
-- O algoritmo existente de corredor, proximidade, confirmação “Continua lá?” e redução de prioridade foi preservado.
+Foi criado o domínio `OfficialRestriction`, com título, descrição, localização, órgão, URL, estado da fonte, data de verificação, vigência, dias, horários, limites dimensionais, peso, tipos de caminhão e efeito de alerta ou bloqueio.
+
+O avaliador considera:
+
+- altura, largura, comprimento e peso;
+- tipo do caminhão;
+- início e fim da vigência;
+- dia da semana;
+- horários, incluindo intervalos que atravessam meia-noite;
+- estado da fonte e efeito configurado.
+
+O resultado é “não se aplica”, “atenção” ou “bloqueado”, acompanhado dos motivos. Uma fonte verificada exige órgão, URL HTTPS e data. O aplicativo ainda não recalcula automaticamente uma rota alternativa.
+
+### Persistência
+
+- Criada a coleção `officialRestrictions`.
+- O cliente pode ler, mas não criar, alterar ou excluir registros.
+- Documentos inválidos são descartados individualmente.
+- Sem Firebase configurado, fixtures explicitamente demonstrativas são utilizadas.
+- Uma coleção válida e vazia permanece vazia, sem receber demonstrações silenciosamente.
+
+## Pontos seguros
+
+Foi criado o domínio `SafePlace`, com categoria, localização, horário, serviços, audiência, origem, verificação, nota média e quantidade de avaliações.
+
+Serviços estruturados: estacionamento para caminhão, iluminação, vigilância, banheiro, chuveiro, alimentação, oficina e pernoite.
+
+O selo “Ponto Amigo da Caminhoneira” exige registro curado e verificado, audiência correspondente e banheiro, chuveiro, iluminação e vigilância.
+
+- Criada a coleção `safePlaces`, somente leitura para o cliente.
+- Pontos são ordenados por distância quando há GPS.
+- Sem localização, a ordem cadastrada é preservada e a interface informa a limitação.
+- Avaliações são resumos curados; publicação pública ainda não foi aberta.
+
+## Frontend entregue
 
 ### Mobile
 
-- Formulário ganhou seleção de categoria.
-- A pergunta de passabilidade passou a ser “Dá para seguir com o caminhão?”.
-- Validação e instruções mudam conforme categoria e urgência.
-- Urgência extrema informa que o recurso não substitui polícia ou atendimento de emergência.
+- Pins diferentes para relatos, restrições e pontos seguros.
+- Cores para bloqueio, atenção, local seguro e estado neutro.
+- Toque no pin abre título, compatibilidade, motivos e origem.
+- Nova aba “Paradas”.
+- Lista de pontos seguros com serviços, nota, avaliações e selo.
+- Estados de carregamento, vazio e localização indisponível.
+- Aviso de que as condições podem mudar e devem ser confirmadas.
 
 ### Web
 
-- Formulário ganhou as mesmas categorias do mobile.
-- Web ganhou o controle de urgência extrema que antes existia apenas no mobile.
-- Feed utiliza os rótulos estruturados do domínio.
+- Marcadores separados no MapLibre.
+- Popups com título, compatibilidade, detalhes e origem.
+- Nova rota `/pontos-seguros` e item na navegação.
+- Lista responsiva com serviços, avaliações, selo, carregamento e estado vazio.
 
 ## Correção dos dados piloto
 
-Foram removidos os seeds que apresentavam como dados de Barra Velha:
+Foram removidos os seeds que atribuíam incorretamente a Barra Velha uma restrição da SC-401, localizada em Florianópolis, e um viaduto de 4,5 m cuja fonte localizada do DNIT aponta para a região de Tubarão.
 
-- uma restrição da SC-401, localizada em Florianópolis;
-- um viaduto de 4,5 m cuja fonte localizada do DNIT aponta para o km 339 da BR-101 Sul, na região de Tubarão.
+Os novos seeds são fictícios, começam com “Demonstração” e não usam nomes de estabelecimentos reais ou órgãos públicos. Nenhum dado é apresentado como oficial sem fonte primária conferida.
 
-O piloto mantém apenas marcações declaradas como demonstração, sem alegar validade oficial. Restrições oficiais deverão entrar em módulo próprio com fonte, coordenadas, data de verificação, vigência e horários.
+## Correções do code review
 
-## Achados e correções do code review
+- Eliminada repetição de categoria/passabilidade nos rótulos.
+- Corrigida a diferença entre “Condição da via: passa” e acidente/bloqueio “passa com atenção”.
+- Frontends deixaram de consumir somente fixtures e passaram a consultar os serviços compartilhados.
+- Coleções Firestore vazias deixaram de receber demonstrações indevidamente.
+- Adicionados detalhes dos pins no mobile e nos popups web.
+- Mantida a separação entre relato, demonstração e fonte verificada.
+- Confirmada a proibição de escrita nas coleções curadas.
 
-O primeiro passe repetia categoria e passabilidade na apresentação, por exemplo “Não passa · Acidente: não passa · Acidente”. A composição foi corrigida para exibir um único rótulo claro.
+## Validação
 
-Também foi corrigido o texto de condição liberada: `route_condition + passa` agora produz “Condição da via: passa”, enquanto acidentes e bloqueios liberados continuam usando “passa com atenção”.
+- Backend: 18 testes aprovados, nenhuma falha.
+- Mobile: `npx tsc --noEmit` aprovado.
+- Web: `npm run build` aprovado, 96 módulos transformados.
+- Git: `git diff --check main...HEAD` aprovado.
 
-Foram acrescentados testes para todas as categorias conhecidas e para os rótulos que possuem semântica diferente.
+Os testes cobrem categorias de incidentes, dimensões, peso, tipo, vigência, horários, janela que atravessa meia-noite, requisitos de fonte, selo para caminhoneiras, distância, apresentação dos pins e ausência dos seeds incorretos.
 
-## Evidências de verificação
+O build web mantém apenas o aviso de bundle superior a 500 kB. O lint web possui um problema preexistente em `web/src/lib/routing.ts`, onde `useFixture` é interpretada como React Hook. O lint mobile ainda não possui configuração funcional.
 
-- `npm test` em `back`: 6 testes, 6 aprovados.
-- `npx tsc --noEmit` em `mobile`: aprovado sem erros.
-- `npm run build` em `web`: aprovado; 90 módulos transformados.
-- `git diff --check`: aprovado.
+## Documentos produzidos
 
-O lint web continua falhando por um problema preexistente em `web/src/lib/routing.ts`: a função comum `useFixture` é interpretada como React Hook pelo nome. O build e o TypeScript passam. O lint mobile não possuía configuração e o comando do Expo tentou instalá-la automaticamente, mas a própria CLI não conseguiu carregar `eslint`; os arquivos automáticos foram descartados.
+- `docs/superpowers/specs/2026-09-17-incidentes-seguranca-design.md`
+- `docs/superpowers/plans/2026-09-17-incidentes-seguranca.md`
+- `docs/superpowers/specs/2026-09-17-restricoes-pontos-seguros-design.md`
+- `docs/superpowers/plans/2026-09-17-restricoes-pontos-seguros.md`
+- `docs-ia/restricoes-pontos-seguros.md`
+- `docs-ia/avisos-rota.md`
+- `docs-ia/escopo.md`
+- `docs-ia/here-checklist.md`
 
-## Fora deste incremento
+## Funcionalidades ainda pendentes dos PDFs
 
-- Restrições oficiais e ingestão de DNIT, DER, PRF ou prefeituras
-- Pontos seguros, avaliações e selos
-- Modo seguro feminino
-- Histórico e estatísticas de segurança por rota
-- SOS, contatos de emergência e pânico silencioso
-- KYC e antifraude
-- Premium, anúncios, marketplace, pagamentos e white label
+- Ingestão automática de DNIT, DER, PRF, prefeituras e diários oficiais.
+- Painel administrativo de curadoria e moderação.
+- Redirecionamento automático de rota.
+- Avaliações públicas com antifraude e moderação.
+- Modo seguro feminino completo e comunidade de caminhoneiras.
+- Histórico e estatísticas de segurança por rota.
+- SOS, contatos de emergência e pânico silencioso.
+- KYC e antifraude de frete.
+- Premium, anúncios, marketplace, pagamentos e white label.
 
-Ordem recomendada para os próximos módulos: restrições oficiais, pontos seguros, modo seguro feminino, histórico de segurança, SOS e monetização.
+Ordem recomendada: avaliações moderadas, modo seguro feminino, histórico de segurança, SOS e monetização.
 
-## Incremento posterior: restrições e pontos seguros
+## Estado da entrega
 
-Foi adicionada uma base curada somente leitura para restrições e pontos seguros. O domínio avalia dimensões, peso, tipo, vigência e horários contra o caminhão cadastrado. Mobile e web exibem pins distintos e uma lista de paradas com serviços e avaliações resumidas. Os dados iniciais são explicitamente demonstrativos; ingestão automática e avaliações públicas permanecem pendentes.
+- Branch: `feat/incidentes-seguranca`
+- Worktree: `C:\borderless\projetos\568-Hugo\.worktrees\incidentes-seguranca`
+- A branch ainda não foi mesclada na `main`.
+- As alterações preexistentes em `mobile/App.tsx` e `.cursor/` na árvore principal não foram modificadas.
