@@ -1,4 +1,4 @@
-import { StyleSheet, Switch, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native'
 import { tokens } from '@rotatrucks/back/tokens'
 import { Container } from '@/components/Container'
 import { Icon, type IconName } from '@/components/Icon'
@@ -6,19 +6,44 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useRouter } from 'expo-router'
 import { Button } from '@/components/Button'
+import { pressStyle } from '@/lib/press'
 
-export function SettingsScreen() {
+interface SettingsScreenProps {
+  embedded?: boolean
+  onBack?: () => void
+  backLabel?: string
+}
+
+export function SettingsScreen({
+  embedded = false,
+  onBack,
+  backLabel = 'Voltar ao perfil',
+}: SettingsScreenProps) {
   const settings = useSettings()
   const router = useRouter()
 
-  return (
-    <Container edges={['top']}>
+  const content = (
       <View style={styles.stack}>
-        <ScreenHeader
-          title="Ajustes"
-          subtitle="Só o que já funciona neste aparelho."
-          icon="settings-outline"
-        />
+        {embedded && onBack ? (
+          <View style={styles.embeddedHeader}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={backLabel}
+              onPress={onBack}
+              hitSlop={8}
+              style={pressStyle(styles.backButton, { opacity: 0.75 })}
+            >
+              <Icon name="chevron-back" size={24} color={tokens.color.ink} />
+            </Pressable>
+            <Text style={styles.embeddedTitle}>Ajustes</Text>
+          </View>
+        ) : (
+          <ScreenHeader
+            title="Ajustes"
+            subtitle="Só o que já funciona neste aparelho."
+            icon="settings-outline"
+          />
+        )}
 
         <View style={styles.card}>
           <Toggle
@@ -65,12 +90,28 @@ export function SettingsScreen() {
           <Button label="Abrir comunidade" variant="outline" onPress={() => router.push('/comunidade')} />
         </View> : null}
       </View>
-    </Container>
   )
+
+  if (embedded) return content
+
+  return <Container edges={['top']}>{content}</Container>
 }
 
 function Plan({ label, hint, selected, onPress }: { label: string; hint: string; selected: boolean; onPress: () => void }) {
-  return <View style={[styles.plan, selected ? styles.planOn : null]}><View style={{ flex: 1 }}><Text style={styles.optionLabel}>{label}</Text><Text style={styles.hint}>{hint}</Text></View><Text onPress={onPress} accessibilityRole="button" style={styles.select}>{selected ? 'Selecionado' : 'Escolher'}</Text></View>
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={pressStyle([styles.plan, selected ? styles.planOn : null], { opacity: 0.9 })}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={styles.optionLabel}>{label}</Text>
+        <Text style={styles.hint}>{hint}</Text>
+      </View>
+      <Text style={styles.select}>{selected ? 'Selecionado' : 'Escolher'}</Text>
+    </Pressable>
+  )
 }
 
 function Toggle({
@@ -104,6 +145,29 @@ const styles = StyleSheet.create({
   stack: {
     gap: tokens.space[4],
     paddingBottom: tokens.space[8],
+  },
+  embeddedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.space[3],
+    paddingTop: tokens.space[2],
+    paddingBottom: tokens.space[1],
+  },
+  backButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: tokens.color.line,
+    backgroundColor: tokens.color.surface,
+  },
+  embeddedTitle: {
+    color: tokens.color.ink,
+    fontFamily: tokens.font.sign,
+    fontSize: 30,
+    lineHeight: 34,
   },
   card: {
     gap: tokens.space[3],

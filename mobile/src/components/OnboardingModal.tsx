@@ -4,8 +4,7 @@ import {
   TRUCK_TYPES,
   TRUCK_TYPE_OPTIONS,
 } from '@rotatrucks/back'
-import { useEffect, useRef } from 'react'
-import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Modal, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { tokens } from '@rotatrucks/back/tokens'
 import { Button } from '@/components/Button'
@@ -18,17 +17,6 @@ import { pressStyle } from '@/lib/press'
 /** Full-screen wizard: one scroll surface (no sticky header/footer split). */
 export function OnboardingModal() {
   const form = useOnboardingForm()
-  const fade = useRef(new Animated.Value(0)).current
-  const slide = useRef(new Animated.Value(16)).current
-
-  useEffect(() => {
-    fade.setValue(0.35)
-    slide.setValue(8)
-    Animated.parallel([
-      Animated.timing(fade, { toValue: 1, duration: 160, useNativeDriver: true }),
-      Animated.timing(slide, { toValue: 0, duration: 160, useNativeDriver: true }),
-    ]).start()
-  }, [fade, form.step, slide])
 
   return (
     <Modal animationType="fade" visible presentationStyle="fullScreen">
@@ -53,7 +41,7 @@ export function OnboardingModal() {
             ))}
           </View>
 
-          <Animated.View style={{ opacity: fade, transform: [{ translateY: slide }] }}>
+          <View key={form.step}>
             <View style={styles.heroIcon}>
               <Icon
                 name={
@@ -127,7 +115,7 @@ export function OnboardingModal() {
             ) : null}
 
             {form.fieldError ? <Text style={styles.error}>{form.fieldError}</Text> : null}
-          </Animated.View>
+          </View>
 
           <View style={styles.actions}>
             <Button

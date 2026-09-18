@@ -1,4 +1,4 @@
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Modal, StyleSheet, Text, View } from 'react-native'
 import type { EmergencyProtocol, TrustedContact } from '@rotatrucks/back'
 import { tokens } from '@rotatrucks/back/tokens'
 import { Button } from '@/components/Button'

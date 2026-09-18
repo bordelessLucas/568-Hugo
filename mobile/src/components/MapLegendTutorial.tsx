@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react'
-import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Modal, StyleSheet, Text, View } from 'react-native'
 import { tokens } from '@rotatrucks/back/tokens'
 import { Button } from '@/components/Button'
 import { Icon } from '@/components/Icon'
@@ -11,48 +10,11 @@ interface MapLegendTutorialProps {
 }
 
 export function MapLegendTutorial({ visible, onConfirm }: MapLegendTutorialProps) {
-  const backdrop = useRef(new Animated.Value(0)).current
-  const card = useRef(new Animated.Value(0)).current
-
-  useEffect(() => {
-    if (!visible) {
-      backdrop.setValue(0)
-      card.setValue(0)
-      return
-    }
-    Animated.parallel([
-      Animated.timing(backdrop, { toValue: 1, duration: 200, useNativeDriver: true }),
-      Animated.timing(card, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start()
-  }, [backdrop, card, visible])
-
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onConfirm}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onConfirm}>
       <View style={styles.root}>
-        <Animated.View style={[styles.backdrop, { opacity: backdrop }]} />
-        <Animated.View
-          style={[
-            styles.card,
-            {
-              opacity: card,
-              transform: [
-                {
-                  translateY: card.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [12, 0],
-                  }),
-                },
-                {
-                  scale: card.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.96, 1],
-                  }),
-                },
-              ],
-            },
-          ]}
-          accessibilityRole="summary"
-        >
+        <View style={styles.backdrop} />
+        <View style={styles.card}>
           <View style={styles.iconWrap}>
             <Icon name="information-circle-outline" size={28} color={tokens.color.brand} />
           </View>
@@ -71,7 +33,7 @@ export function MapLegendTutorial({ visible, onConfirm }: MapLegendTutorialProps
           >
             <Text style={styles.skip}>Fechar</Text>
           </Pressable>
-        </Animated.View>
+        </View>
       </View>
     </Modal>
   )

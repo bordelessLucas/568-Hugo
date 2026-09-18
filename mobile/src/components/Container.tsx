@@ -8,15 +8,17 @@ interface ContainerProps {
   scroll?: boolean
   /** Defaults to top+bottom. Tab screens should pass ["top"] only. */
   edges?: readonly Edge[]
+  backgroundColor?: string
 }
 
 export function Container({
   children,
   scroll = true,
   edges = ['top', 'bottom'],
+  backgroundColor = tokens.color.fog,
 }: ContainerProps) {
   return (
-    <SafeAreaView style={styles.safe} edges={edges}>
+    <SafeAreaView style={[styles.safe, { backgroundColor }]} edges={edges}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef } from 'react'
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Animated, ScrollView, StyleSheet, Text, View } from 'react-native'
 import {
   ALERT_STATUS_LABEL,
   ALERT_URGENCY_LABEL,

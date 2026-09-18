@@ -25,6 +25,7 @@ import {
 } from '@rotatrucks/back'
 import { tokens } from '@rotatrucks/back/tokens'
 import { IconChip, IconFab } from '@/components/IconFab'
+import { Container } from '@/components/Container'
 import { MapLegendTutorial } from '@/components/MapLegendTutorial'
 import { MockMap } from '@/components/MockMap'
 import { PlaceSearch } from '@/components/PlaceSearch'
@@ -32,6 +33,7 @@ import { RouteAlertCard } from '@/components/RouteAlertCard'
 import { SetupNotice } from '@/components/SetupNotice'
 import { SosButton } from '@/components/SosButton'
 import { SosConfirmation } from '@/components/SosConfirmation'
+import { SettingsScreen } from '@/screens/SettingsScreen'
 import { SafetyGuidanceCard } from '@/components/SafetyGuidanceCard'
 import { Icon } from '@/components/Icon'
 import { useAuth } from '@/contexts/AuthContext'
@@ -66,6 +68,7 @@ export function HomeScreen() {
   const [trustedContacts, setTrustedContacts] = useState<TrustedContact[]>([])
   const [sosMessage, setSosMessage] = useState('')
   const [dismissedAutomaticMarkId, setDismissedAutomaticMarkId] = useState('')
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const truck = auth.truck
   const path = result?.status === 'compatible' ? result.path : []
   const tags = routeTags(truck, result)
@@ -179,6 +182,18 @@ export function HomeScreen() {
   const statusLine = routeStatusLine(routing, result, Boolean(destination && truck))
   const locationBanner = locationBannerCopy(settings.shareLocation, location.status)
 
+  if (settingsOpen) {
+    return (
+      <Container edges={['top']}>
+        <SettingsScreen
+          embedded
+          backLabel="Voltar ao mapa"
+          onBack={() => setSettingsOpen(false)}
+        />
+      </Container>
+    )
+  }
+
   return (
     <View style={styles.root}>
       <View style={styles.mapArea}>
@@ -227,15 +242,27 @@ export function HomeScreen() {
             </View>
           ) : null}
 
-          <PlaceSearch
-            near={location.point}
-            tags={tags}
-            onSelect={onSelectPlace}
-            onClear={() => {
-              setDestination(null)
-              setResult(null)
-            }}
-          />
+          <View style={styles.searchRow}>
+            <View style={styles.searchSlot}>
+              <PlaceSearch
+                near={location.point}
+                tags={tags}
+                onSelect={onSelectPlace}
+                onClear={() => {
+                  setDestination(null)
+                  setResult(null)
+                }}
+              />
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Abrir configurações"
+              onPress={() => setSettingsOpen(true)}
+              style={pressStyle(styles.settingsButton, { opacity: 0.82 })}
+            >
+              <Icon name="settings-outline" size={23} color={tokens.color.ink} />
+            </Pressable>
+          </View>
 
           {!alertOpen && !destination ? (
             <View style={styles.chips} pointerEvents="box-none">
@@ -456,6 +483,29 @@ const styles = StyleSheet.create({
   },
   notice: {
     marginBottom: 0,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: tokens.space[2],
+  },
+  searchSlot: {
+    flex: 1,
+  },
+  settingsButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: tokens.color.line,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    shadowColor: '#073049',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   chips: {
     flexDirection: 'row',

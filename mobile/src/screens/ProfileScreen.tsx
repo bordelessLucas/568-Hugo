@@ -15,12 +15,13 @@ import { Container } from '@/components/Container'
 import { Icon } from '@/components/Icon'
 import { Input } from '@/components/Input'
 import { ScreenHeader } from '@/components/ScreenHeader'
+import { SettingsScreen } from '@/screens/SettingsScreen'
 import { useAuth } from '@/contexts/AuthContext'
 import { toUserMessage } from '@/lib/auth-errors'
 import { formatMeters, formatWeight, parseMeasure } from '@/lib/measures'
 import { pressStyle } from '@/lib/press'
 
-type Mode = 'list' | 'add' | 'edit'
+type Mode = 'list' | 'add' | 'edit' | 'settings'
 
 export function ProfileScreen() {
   const auth = useAuth()
@@ -125,6 +126,21 @@ export function ProfileScreen() {
               variant="secondary"
               onPress={() => router.push('/contatos-confianca')}
             />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Abrir configurações"
+              onPress={() => setMode('settings')}
+              style={pressStyle(styles.settingsEntry, { opacity: 0.9, pressed: styles.choicePressed })}
+            >
+              <View style={styles.settingsIcon}>
+                <Icon name="settings-outline" size={20} color={tokens.color.brand} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.value}>Configurações</Text>
+                <Text style={styles.muted}>Localização, avisos, modo seguro e plano.</Text>
+              </View>
+              <Icon name="chevron-forward" size={18} color={tokens.color.muted} />
+            </Pressable>
             <Button
               label="Sair"
               variant="outline"
@@ -133,6 +149,8 @@ export function ProfileScreen() {
               }}
             />
           </>
+        ) : mode === 'settings' ? (
+          <SettingsScreen embedded backLabel="Voltar ao perfil" onBack={() => setMode('list')} />
         ) : (
           <TruckForm
             title={mode === 'edit' ? 'Editar caminhão' : 'Novo caminhão'}
@@ -325,6 +343,24 @@ const styles = StyleSheet.create({
   },
   truckActions: {
     gap: tokens.space[2],
+  },
+  settingsEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.space[3],
+    padding: tokens.space[4],
+    borderRadius: tokens.radius.button,
+    borderWidth: 1,
+    borderColor: tokens.color.line,
+    backgroundColor: tokens.color.surface,
+  },
+  settingsIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.color.fog,
   },
   choice: {
     flexDirection: 'row',

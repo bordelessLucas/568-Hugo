@@ -7,7 +7,7 @@ import {
   Nunito_700Bold,
   Nunito_800ExtraBold,
 } from '@expo-google-fonts/nunito'
-import { ActivityIndicator, View } from 'react-native'
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { tokens } from '@rotatrucks/back/tokens'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
@@ -23,7 +23,7 @@ export default function RootLayout() {
   })
 
   if (!ready) {
-    return null
+    return <SplashScreen />
   }
 
   return (
@@ -42,11 +42,7 @@ function RootNavigator() {
   const auth = useAuth()
 
   if (auth.status === 'loading') {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: tokens.color.fog }}>
-        <ActivityIndicator color={tokens.color.brand} />
-      </View>
-    )
+    return <SplashScreen />
   }
 
   return (
@@ -56,3 +52,49 @@ function RootNavigator() {
     </>
   )
 }
+
+function SplashScreen() {
+  return (
+    <View style={styles.splash}>
+      <Image
+        source={require('../../assets/images/logo.png')}
+        style={styles.logo}
+        accessibilityLabel="RotaTruck"
+      />
+      <View style={styles.brandBlock}>
+        <Text style={styles.brand}>RotaTruck</Text>
+        <Text style={styles.tagline}>Carregando sua rota segura</Text>
+      </View>
+      <ActivityIndicator color={tokens.color.accent} />
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  splash: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: tokens.space[5],
+    padding: tokens.space[6],
+    backgroundColor: tokens.color.brand,
+  },
+  logo: {
+    width: 132,
+    height: 132,
+  },
+  brandBlock: {
+    alignItems: 'center',
+    gap: tokens.space[2],
+  },
+  brand: {
+    color: tokens.color.onBrand,
+    fontFamily: tokens.font.sign,
+    fontSize: tokens.size.title,
+  },
+  tagline: {
+    color: tokens.color.onBrandMuted,
+    fontFamily: tokens.font.bodyMedium,
+    fontSize: tokens.size.body,
+  },
+})

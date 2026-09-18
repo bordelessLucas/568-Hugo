@@ -84,6 +84,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="configuracoes"
         options={{
+          href: null,
           title: 'Ajustes',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
